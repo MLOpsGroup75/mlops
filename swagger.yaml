@@ -1,0 +1,269 @@
+openapi: 3.0.3
+info:
+  title: MLOps Housing Price Prediction API
+  description: API service for housing price prediction with monitoring and health checks
+  version: 1.0.0
+  contact:
+    name: MLOps Team
+    email: mlops@startup.com
+
+servers:
+  - url: http://localhost:8000
+    description: Development server
+  - url: https://api.startup.com
+    description: Production server
+
+paths:
+  /v1/predict:
+    post:
+      summary: Predict housing price
+      description: Predicts housing price based on input features
+      operationId: predictHousingPrice
+      tags:
+        - Prediction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PredictionRequest'
+            example:
+              longitude: -122.23
+              latitude: 37.88
+              housingMedianAge: 41.0
+              totalRooms: 880.0
+              totalBedrooms: 129.0
+              population: 322.0
+              households: 126.0
+              medianIncome: 8.3252
+              medianHouseValue: 452600.0
+              oceanProximity: "NEAR BAY"
+      responses:
+        '200':
+          description: Successful prediction
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/PredictionSuccess'
+                  - $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /metrics:
+    get:
+      summary: Prometheus metrics
+      description: Returns Prometheus-formatted metrics for monitoring
+      operationId: getMetrics
+      tags:
+        - Monitoring
+      responses:
+        '200':
+          description: Prometheus metrics
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: |
+                  # HELP http_requests_total Total number of HTTP requests
+                  # TYPE http_requests_total counter
+                  http_requests_total{method="GET",endpoint="/health"} 5
+                  # HELP prediction_requests_total Total number of prediction requests
+                  # TYPE prediction_requests_total counter
+                  prediction_requests_total 10
+                  # HELP prediction_duration_seconds Time spent on predictions
+                  # TYPE prediction_duration_seconds histogram
+                  prediction_duration_seconds_bucket{le="0.1"} 8
+                  prediction_duration_seconds_bucket{le="0.5"} 10
+                  prediction_duration_seconds_bucket{le="+Inf"} 10
+
+  /health:
+    get:
+      summary: Health check
+      description: Returns the health status of the service
+      operationId: healthCheck
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /readiness:
+    get:
+      summary: Readiness check
+      description: Returns the readiness status for Kubernetes
+      operationId: readinessCheck
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Service is ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadinessResponse'
+        '503':
+          description: Service not ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    PredictionRequest:
+      type: object
+      required:
+        - longitude
+        - latitude
+        - housingMedianAge
+        - totalRooms
+        - totalBedrooms
+        - population
+        - households
+        - medianIncome
+        - medianHouseValue
+        - oceanProximity
+      properties:
+        longitude:
+          type: number
+          format: float
+          description: Longitude coordinate
+          example: -122.23
+        latitude:
+          type: number
+          format: float
+          description: Latitude coordinate
+          example: 37.88
+        housingMedianAge:
+          type: number
+          format: float
+          description: Median age of housing in the area
+          example: 41.0
+        totalRooms:
+          type: number
+          format: float
+          description: Total number of rooms
+          example: 880.0
+        totalBedrooms:
+          type: number
+          format: float
+          description: Total number of bedrooms
+          example: 129.0
+        population:
+          type: number
+          format: float
+          description: Population in the area
+          example: 322.0
+        households:
+          type: number
+          format: float
+          description: Number of households
+          example: 126.0
+        medianIncome:
+          type: number
+          format: float
+          description: Median income in the area
+          example: 8.3252
+        medianHouseValue:
+          type: number
+          format: float
+          description: Median house value in the area
+          example: 452600.0
+        oceanProximity:
+          type: string
+          description: Proximity to ocean
+          enum: ["<1H OCEAN", "INLAND", "ISLAND", "NEAR BAY", "NEAR OCEAN"]
+          example: "NEAR BAY"
+
+    PredictionSuccess:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - housingPrice
+          properties:
+            housingPrice:
+              type: number
+              format: float
+              description: Predicted housing price
+              example: 450000.0
+            accuracy:
+              type: number
+              format: float
+              description: Model accuracy (optional)
+              example: 0.85
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+              description: Error code
+              example: "VALIDATION_ERROR"
+            message:
+              type: string
+              description: Error message
+              example: "Invalid input parameters"
+
+    HealthResponse:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          example: "OK"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2023-12-01T10:00:00Z"
+
+    ReadinessResponse:
+      type: object
+      required:
+        - ready
+      properties:
+        ready:
+          type: boolean
+          example: true
+        checks:
+          type: object
+          properties:
+            database:
+              type: string
+              example: "OK"
+            predictService:
+              type: string
+              example: "OK"
