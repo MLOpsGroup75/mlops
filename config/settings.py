@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     log_to_file: bool = True
     log_db_path: str = "logs/app_logs.db"
+    log_health_endpoints: bool = False  # Enable logging for /health, /readiness, /metrics endpoints
     
     # Database Settings
     database_url: str = "sqlite:///./logs/app_logs.db"

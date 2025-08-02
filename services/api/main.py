@@ -3,8 +3,8 @@ import time
 import uuid
 from datetime import datetime
 from fastapi import FastAPI, HTTPException, Depends, Request, status
-from fastapi.responses import PlainTextResponse
-from slowapi import Limiter, _rate_limit_exceeded_handler
+from fastapi.responses import PlainTextResponse, JSONResponse
+from slowapi import Limiter
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 import httpx
@@ -39,7 +39,7 @@ app = FastAPI(
 
 # Add rate limiting
 app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+# Note: Custom rate limit handler is defined below, no need for default handler
 
 # Add middleware
 app.add_middleware(LoggingMiddleware, service_name="api")
@@ -227,9 +227,13 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
         client_ip=get_remote_address(request),
         service="api"
     )
-    return HTTPException(
+    return JSONResponse(
         status_code=429,
-        detail="Rate limit exceeded. Please try again later."
+        content={
+            "error": "Rate limit exceeded",
+            "detail": "Rate limit exceeded. Please try again later.",
+            "retry_after": exc.retry_after if hasattr(exc, 'retry_after') else 60
+        }
     )
 
 
@@ -240,5 +244,5 @@ if __name__ == "__main__":
         host=settings.api_host,
         port=settings.api_port,
         reload=settings.api_debug,
-        log_level=settings.log_level.lower()
+        log_level=settings.log_level.lower(),
     )

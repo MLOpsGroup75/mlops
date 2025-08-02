@@ -275,5 +275,5 @@ if __name__ == "__main__":
         host=settings.predict_host,
         port=settings.predict_port,
         reload=settings.api_debug,
-        log_level=settings.log_level.lower()
+        log_level=settings.log_level.lower(),
     )
