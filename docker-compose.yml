@@ -1,0 +1,104 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: mlops-api
+    ports:
+      - "8000:8000"
+    environment:
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - PREDICT_URL=http://predict:8001
+      - LOG_LEVEL=INFO
+      - LOG_TO_FILE=true
+      - LOG_DB_PATH=/app/logs/api_logs.db
+      - RATE_LIMIT_REQUESTS=5
+      - RATE_LIMIT_WINDOW=60
+      - SERVICE_NAME=api
+    volumes:
+      - ./logs:/app/logs
+      - ./config:/app/config
+      - ./data:/app/data
+    depends_on:
+      - predict
+    command: python -m uvicorn services.api.main:app --host 0.0.0.0 --port 8000
+    networks:
+      - mlops-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  predict:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: mlops-predict
+    ports:
+      - "8001:8001"
+    environment:
+      - PREDICT_HOST=0.0.0.0
+      - PREDICT_PORT=8001
+      - LOG_LEVEL=INFO
+      - LOG_TO_FILE=true
+      - LOG_DB_PATH=/app/logs/predict_logs.db
+      - MODEL_PATH=/app/model/artifacts/housing_model.pkl
+      - MODEL_ACCURACY=0.85
+      - SERVICE_NAME=predict
+    volumes:
+      - ./logs:/app/logs
+      - ./config:/app/config
+      - ./model:/app/model
+      - ./data:/app/data
+    command: python -m uvicorn services.predict.main:app --host 0.0.0.0 --port 8001
+    networks:
+      - mlops-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: mlops-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    networks:
+      - mlops-network
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: mlops-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-storage:/var/lib/grafana
+      - ./monitoring/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
+    networks:
+      - mlops-network
+    restart: unless-stopped
+
+networks:
+  mlops-network:
+    driver: bridge
+
+volumes:
+  grafana-storage:
