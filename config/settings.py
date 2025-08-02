@@ -23,6 +23,8 @@ class Settings(BaseSettings):
     log_to_file: bool = True
     log_db_path: str = "logs/app_logs.db"
     log_health_endpoints: bool = False  # Enable logging for /health, /readiness, /metrics endpoints
+    log_request_body: bool = True  # Enable logging of request/response bodies in JSON format
+    max_body_log_size: int = 10000  # Maximum body size to log (in bytes)
     
     # Database Settings
     database_url: str = "sqlite:///./logs/app_logs.db"
