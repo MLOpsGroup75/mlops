@@ -39,42 +39,42 @@ def view_logs(db_path, limit=None, service=None, level=None, request_id=None):
         cursor.execute(query, params)
         rows = cursor.fetchall()
         
-        print(f"\n📊 Database: {db_path}")
-        print(f"📈 Total entries found: {len(rows)}")
+        print(f"\n Database: {db_path}")
+        print(f" Total entries found: {len(rows)}")
         print("=" * 100)
         
         for row in rows:
             id, timestamp, level, logger_name, message, service, request_id, extra_data, created_at = row
             
-            print(f"\n🆔 ID: {id}")
-            print(f"⏰ Timestamp: {timestamp}")
-            print(f"📍 Created: {created_at}")
-            print(f"🔢 Level: {level}")
-            print(f"🏷️  Logger: {logger_name}")
-            print(f"🏢 Service: {service}")
-            print(f"🔑 Request ID: {request_id}")
+            print(f"\n ID: {id}")
+            print(f" Timestamp: {timestamp}")
+            print(f" Created: {created_at}")
+            print(f" Level: {level}")
+            print(f"️ Logger: {logger_name}")
+            print(f" Service: {service}")
+            print(f" Request ID: {request_id}")
             
             # Try to parse and pretty print JSON message
             try:
                 if message and message.startswith('{'):
                     parsed_msg = json.loads(message)
-                    print(f"💬 Message: {json.dumps(parsed_msg, indent=2)}")
+                    print(f" Message: {json.dumps(parsed_msg, indent=2)}")
                 else:
-                    print(f"💬 Message: {message}")
+                    print(f" Message: {message}")
             except json.JSONDecodeError:
-                print(f"💬 Message: {message}")
+                print(f" Message: {message}")
             
             if extra_data:
-                print(f"📋 Extra Data: {extra_data}")
+                print(f" Extra Data: {extra_data}")
             
             print("-" * 80)
         
         conn.close()
         
     except sqlite3.Error as e:
-        print(f"❌ Database error: {e}")
+        print(f"Database error: {e}")
     except FileNotFoundError:
-        print(f"❌ Database file not found: {db_path}")
+        print(f"Database file not found: {db_path}")
 
 
 def show_summary(db_path):
@@ -84,32 +84,32 @@ def show_summary(db_path):
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
         
-        print(f"\n📊 Summary for: {db_path}")
+        print(f"\n Summary for: {db_path}")
         print("=" * 50)
         
         # Total count
         cursor.execute("SELECT COUNT(*) FROM logs")
         total = cursor.fetchone()[0]
-        print(f"📈 Total entries: {total}")
+        print(f" Total entries: {total}")
         
         # Count by level
         cursor.execute("SELECT level, COUNT(*) FROM logs GROUP BY level ORDER BY COUNT(*) DESC")
         levels = cursor.fetchall()
-        print(f"\n📊 By Log Level:")
+        print(f"\n By Log Level:")
         for level, count in levels:
             print(f"  {level}: {count}")
         
         # Count by service
         cursor.execute("SELECT service, COUNT(*) FROM logs GROUP BY service ORDER BY COUNT(*) DESC")
         services = cursor.fetchall()
-        print(f"\n🏢 By Service:")
+        print(f"\n By Service:")
         for service, count in services:
             print(f"  {service or 'unknown'}: {count}")
         
         # Count by logger
         cursor.execute("SELECT logger_name, COUNT(*) FROM logs GROUP BY logger_name ORDER BY COUNT(*) DESC")
         loggers = cursor.fetchall()
-        print(f"\n🏷️  By Logger:")
+        print(f"\n️  By Logger:")
         for logger, count in loggers:
             print(f"  {logger or 'unknown'}: {count}")
         
@@ -119,14 +119,14 @@ def show_summary(db_path):
         cursor.execute("SELECT created_at FROM logs ORDER BY created_at ASC LIMIT 1")
         earliest = cursor.fetchone()
         
-        print(f"\n⏰ Time Range:")
+        print(f"\nTime Range:")
         print(f"  Earliest: {earliest[0] if earliest else 'N/A'}")
         print(f"  Latest: {latest[0] if latest else 'N/A'}")
         
         conn.close()
         
     except sqlite3.Error as e:
-        print(f"❌ Database error: {e}")
+        print(f"Database error: {e}")
 
 
 if __name__ == "__main__":

@@ -39,11 +39,11 @@ def test_rate_limiting():
             
             if response.status_code == 200:
                 successful_requests += 1
-                print(f"✓ Request {i+1}: Status {response.status_code} - OK")
+                print(f"Request {i+1}: Status {response.status_code} - OK")
                 
             elif response.status_code == 429:
                 rate_limited_requests += 1
-                print(f"⚠️  Request {i+1}: Status {response.status_code} - Rate Limited")
+                print(f"  Request {i+1}: Status {response.status_code} - Rate Limited")
                 
                 # Try to parse response content
                 try:
@@ -55,28 +55,28 @@ def test_rate_limiting():
                     print(f"   Raw response: {response.text}")
                     
             else:
-                print(f"❌ Request {i+1}: Unexpected status {response.status_code}")
+                print(f"Request {i+1}: Unexpected status {response.status_code}")
                 print(f"   Response: {response.text}")
                 
         except requests.exceptions.RequestException as e:
-            print(f"❌ Request {i+1}: Network error - {e}")
+            print(f"Request {i+1}: Network error - {e}")
             
         # Small delay between requests
         time.sleep(0.1)
     
     print("\n" + "=" * 50)
     print("Test Results:")
-    print(f"✓ Successful requests: {successful_requests}")
-    print(f"⚠️  Rate limited requests: {rate_limited_requests}")
+    print(f"Successful requests: {successful_requests}")
+    print(f"  Rate limited requests: {rate_limited_requests}")
     
     # Validate results
     if rate_limited_requests > 0:
-        print("\n🎉 SUCCESS: Rate limiting is working correctly!")
+        print("\n SUCCESS: Rate limiting is working correctly!")
         print("   - Rate limit is properly enforced")
         print("   - HTTP 429 status code is returned correctly")
         print("   - No HTTP 500 errors when rate limited")
     else:
-        print("\n⚠️  WARNING: No rate limiting detected")
+        print("\n  WARNING: No rate limiting detected")
         print("   - Check if the API service is running")
         print("   - Verify rate limit settings are applied")
         
@@ -94,7 +94,7 @@ def test_rate_limit_recovery():
     
     # Wait for rate limit window to reset
     for i in range(settings.rate_limit_window + 1):
-        print(f"⏳ {settings.rate_limit_window - i} seconds remaining...", end="\r")
+        print(f"{settings.rate_limit_window - i} seconds remaining...", end="\r")
         time.sleep(1)
     
     print("\n\nTesting requests after rate limit reset...")
@@ -103,17 +103,17 @@ def test_rate_limit_recovery():
         response = requests.get(f"{base_url}/health", timeout=5)
         
         if response.status_code == 200:
-            print("✅ SUCCESS: Rate limit has reset, requests working again")
+            print("SUCCESS: Rate limit has reset, requests working again")
             return True
         elif response.status_code == 429:
-            print("❌ FAILURE: Still rate limited after waiting")
+            print("FAILURE: Still rate limited after waiting")
             return False
         else:
-            print(f"⚠️  Unexpected status: {response.status_code}")
+            print(f"  Unexpected status: {response.status_code}")
             return False
             
     except requests.exceptions.RequestException as e:
-        print(f"❌ Network error: {e}")
+        print(f"Network error: {e}")
         return False
 
 if __name__ == "__main__":
@@ -128,10 +128,10 @@ if __name__ == "__main__":
         recovery_works = test_rate_limit_recovery()
         
         if recovery_works:
-            print("\n🎉 All tests passed! Rate limiting is working correctly.")
+            print("\n All tests passed! Rate limiting is working correctly.")
         else:
-            print("\n⚠️  Rate limiting works but recovery test failed.")
+            print("\n  Rate limiting works but recovery test failed.")
     else:
-        print("\n❌ Rate limiting test failed. Check API service configuration.")
+        print("\nRate limiting test failed. Check API service configuration.")
         
     print("\nTest completed.")
