@@ -29,15 +29,15 @@ jobs:
       uses: actions/cache@v3
       with:
         path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-api-${{ hashFiles('services/api/requirements.txt') }}
+        key: ${{ runner.os }}-pip-combined-${{ hashFiles('services/api/requirements.txt', 'services/predict/requirements.txt') }}
         restore-keys: |
-          ${{ runner.os }}-pip-api-
+          ${{ runner.os }}-pip-combined-
           
     - name: Install dependencies
-      working-directory: ./services/api
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install -r services/api/requirements.txt
+        pip install -r services/predict/requirements.txt
         
     - name: Run tests
       run: |
@@ -67,15 +67,15 @@ jobs:
       uses: actions/cache@v3
       with:
         path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-predict-${{ hashFiles('services/predict/requirements.txt') }}
+        key: ${{ runner.os }}-pip-combined-${{ hashFiles('services/api/requirements.txt', 'services/predict/requirements.txt') }}
         restore-keys: |
-          ${{ runner.os }}-pip-predict-
+          ${{ runner.os }}-pip-combined-
           
     - name: Install dependencies
-      working-directory: ./services/predict
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install -r services/api/requirements.txt
+        pip install -r services/predict/requirements.txt
         
     - name: Run tests
       run: |

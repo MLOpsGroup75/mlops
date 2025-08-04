@@ -112,7 +112,7 @@ def main():
 
     # Add coverage options
     if args.coverage:
-        pytest_cmd.extend(['--cov=services', '--cov=config'])
+        pytest_cmd.extend(['--cov=services/api/app', '--cov=services/predict/app', '--cov=services/common', '--cov=config'])
         if args.html_report:
             pytest_cmd.extend(['--cov-report=html', '--cov-report=term'])
         else:
@@ -145,7 +145,8 @@ def main():
     elif args.test:
         pytest_cmd.append(f"tests/{args.test}")
     else:
-        pytest_cmd.append('tests/')  # Always target tests directory explicitly
+        # Target both service test directories
+        pytest_cmd.extend(['services/api/tests/', 'services/predict/tests/'])
 
     # Run the tests
     if not run_command(pytest_cmd, "Running tests"):

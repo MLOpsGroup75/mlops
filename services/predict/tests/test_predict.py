@@ -5,7 +5,7 @@ import pytest
 from unittest.mock import Mock, patch, MagicMock
 from fastapi import status
 
-from app.main import DummyHousingModel, prepare_features, load_model
+from services.predict.app.main import DummyHousingModel, prepare_features, load_model
 from services.common.models import InternalPredictionRequest
 
 
@@ -121,14 +121,14 @@ class TestPredictServiceHelpers:
         """Test successful model loading"""
         with patch('config.settings.settings', test_settings):
             # Mock the global model variable
-            with patch('app.main.model', None):
+            with patch('services.predict.app.main.model', None):
                 result = load_model()
                 assert result is True
     
     def test_load_model_failure(self, test_settings):
         """Test model loading failure"""
         with patch('config.settings.settings', test_settings):
-            with patch('app.main.DummyHousingModel') as mock_model:
+            with patch('services.predict.app.main.DummyHousingModel') as mock_model:
                 mock_model.side_effect = Exception("Model loading failed")
                 
                 result = load_model()
@@ -142,7 +142,7 @@ class TestPredictServiceEndpoints:
     @pytest.mark.asyncio
     async def test_health_endpoint_model_loaded(self, predict_client):
         """Test health endpoint when model is loaded"""
-        with patch('app.main.model', Mock()):
+        with patch('services.predict.app.main.model', Mock()):
             response = await predict_client.get("/health")
             
             assert response.status_code == status.HTTP_200_OK
@@ -153,7 +153,7 @@ class TestPredictServiceEndpoints:
     @pytest.mark.asyncio
     async def test_health_endpoint_model_not_loaded(self, predict_client):
         """Test health endpoint when model is not loaded"""
-        with patch('app.main.model', None):
+        with patch('services.predict.app.main.model', None):
             response = await predict_client.get("/health")
             
             assert response.status_code == status.HTTP_200_OK
@@ -167,7 +167,7 @@ class TestPredictServiceEndpoints:
         mock_model.predict.return_value = 450000.0
         mock_model.get_accuracy.return_value = 0.85
         
-        with patch('app.main.model', mock_model):
+        with patch('services.predict.app.main.model', mock_model):
             request_data = {
                 "longitude": -122.23,
                 "latitude": 37.88,
@@ -194,7 +194,7 @@ class TestPredictServiceEndpoints:
     @pytest.mark.asyncio
     async def test_predict_endpoint_model_not_loaded(self, predict_client):
         """Test prediction endpoint when model is not loaded"""
-        with patch('app.main.model', None):
+        with patch('services.predict.app.main.model', None):
             request_data = {
                 "longitude": -122.23,
                 "latitude": 37.88,
@@ -218,7 +218,7 @@ class TestPredictServiceEndpoints:
         mock_model = Mock()
         mock_model.predict.side_effect = Exception("Model prediction failed")
         
-        with patch('app.main.model', mock_model):
+        with patch('services.predict.app.main.model', mock_model):
             request_data = {
                 "longitude": -122.23,
                 "latitude": 37.88,
@@ -243,7 +243,7 @@ class TestPredictServiceEndpoints:
         mock_model.get_accuracy.return_value = 0.85
         type(mock_model).__name__ = "DummyHousingModel"
         
-        with patch('app.main.model', mock_model):
+        with patch('services.predict.app.main.model', mock_model):
             response = await predict_client.get("/model/info")
             
             assert response.status_code == status.HTTP_200_OK
@@ -256,7 +256,7 @@ class TestPredictServiceEndpoints:
     @pytest.mark.asyncio
     async def test_model_info_endpoint_no_model(self, predict_client):
         """Test model info endpoint when model is not loaded"""
-        with patch('app.main.model', None):
+        with patch('services.predict.app.main.model', None):
             response = await predict_client.get("/model/info")
             
             assert response.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
@@ -264,7 +264,7 @@ class TestPredictServiceEndpoints:
     @pytest.mark.asyncio
     async def test_reload_model_endpoint_success(self, predict_client):
         """Test model reload endpoint success"""
-        with patch('app.main.load_model', return_value=True):
+        with patch('services.predict.app.main.load_model', return_value=True):
             response = await predict_client.post("/model/reload")
             
             assert response.status_code == status.HTTP_200_OK
@@ -274,7 +274,7 @@ class TestPredictServiceEndpoints:
     @pytest.mark.asyncio
     async def test_reload_model_endpoint_failure(self, predict_client):
         """Test model reload endpoint failure"""
-        with patch('app.main.load_model', return_value=False):
+        with patch('services.predict.app.main.load_model', return_value=False):
             response = await predict_client.post("/model/reload")
             
             assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
