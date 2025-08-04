@@ -1,8 +1,8 @@
 services:
   api:
     build:
-      context: ./services/api
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./services/api/Dockerfile
     container_name: mlops-api
     ports:
       - "8000:8000"
@@ -23,7 +23,7 @@ services:
       - ./services/common:/app/services/common
     depends_on:
       - predict
-    command: python -m uvicorn main:app --host 0.0.0.0 --port 8000 --no-access-log
+    command: python -m uvicorn services.api.app.main:app --host 0.0.0.0 --port 8000 --no-access-log
     networks:
       - mlops-network
     restart: unless-stopped
@@ -36,8 +36,8 @@ services:
 
   predict:
     build:
-      context: ./services/predict
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./services/predict/Dockerfile
     container_name: mlops-predict
     ports:
       - "8001:8001"
@@ -56,7 +56,7 @@ services:
       - ./model:/app/model
       - ./data:/app/data
       - ./services/common:/app/services/common
-    command: python -m uvicorn main:app --host 0.0.0.0 --port 8001 --no-access-log
+    command: python -m uvicorn services.predict.app.main:app --host 0.0.0.0 --port 8001 --no-access-log
     networks:
       - mlops-network
     restart: unless-stopped

@@ -19,12 +19,16 @@ RUN groupadd -r predictuser && useradd -r -g predictuser predictuser
 WORKDIR /app
 
 # Copy requirements and install dependencies
-COPY requirements.txt .
+COPY services/predict/requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
+# Copy shared code and config
+COPY services/common/ services/common/
+COPY config/ config/
+
 # Copy application code
-COPY app/ .
+COPY services/predict/app/ services/predict/app/
 
 # Create necessary directories for model and logs
 RUN mkdir -p logs model/artifacts model/checkpoints model/configs
@@ -43,4 +47,4 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8001/health || exit 1
 
 # Run the predict service
-CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001"]
+CMD ["python", "-m", "uvicorn", "services.predict.app.main:app", "--host", "0.0.0.0", "--port", "8001"]

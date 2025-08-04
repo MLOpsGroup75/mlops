@@ -115,7 +115,7 @@ jobs:
         tags: |
           type=ref,event=branch
           type=ref,event=pr
-          type=sha
+          type=sha,format=long
           type=raw,value=latest,enable={{is_default_branch}}
           
     - name: Build and push Docker image
@@ -155,7 +155,7 @@ jobs:
         tags: |
           type=ref,event=branch
           type=ref,event=pr
-          type=sha
+          type=sha,format=long
           type=raw,value=latest,enable={{is_default_branch}}
           
     - name: Build and push Docker image
@@ -189,20 +189,65 @@ jobs:
         
     - name: Run integration tests
       run: |
-        # Start services
-        docker run -d --name predict-service --network host predict-service:test
-        docker run -d --name api-service --network host api-service:test
+        # Start services with proper port mapping
+        echo "Starting predict service..."
+        docker run -d --name predict-service -p 8001:8001 predict-service:test
+        echo "Starting api service..."
+        docker run -d --name api-service -p 8000:8000 api-service:test
         
-        # Wait for services to be ready
-        sleep 30
+        # Wait for containers to start
+        sleep 5
         
-        # Run basic health checks
+        # Check container status
+        echo "Checking container status..."
+        docker ps -a
+        
+        # Show container logs for debugging
+        echo "=== Predict Service Logs ==="
+        docker logs predict-service
+        echo "=== API Service Logs ==="
+        docker logs api-service
+        
+        # Wait for services to be ready with retries
+        echo "Waiting for services to be ready..."
+        for i in {1..30}; do
+          if curl -f http://localhost:8001/health > /dev/null 2>&1; then
+            echo "Predict service is ready!"
+            break
+          fi
+          if [ $i -eq 30 ]; then
+            echo "Predict service failed to start after 30 attempts"
+            docker logs predict-service
+            exit 1
+          fi
+          echo "Waiting for predict service... attempt $i/30"
+          sleep 2
+        done
+        
+        for i in {1..30}; do
+          if curl -f http://localhost:8000/health > /dev/null 2>&1; then
+            echo "API service is ready!"
+            break
+          fi
+          if [ $i -eq 30 ]; then
+            echo "API service failed to start after 30 attempts"
+            docker logs api-service
+            exit 1
+          fi
+          echo "Waiting for API service... attempt $i/30"
+          sleep 2
+        done
+        
+        # Run health checks
+        echo "Running health checks..."
         curl -f http://localhost:8001/health || exit 1
         curl -f http://localhost:8000/health || exit 1
         
+        echo "Integration tests passed!"
+        
         # Clean up
-        docker stop api-service predict-service
-        docker rm api-service predict-service
+        docker stop api-service predict-service || true
+        docker rm api-service predict-service || true
 
   security-scan:
     name: Security Scan
