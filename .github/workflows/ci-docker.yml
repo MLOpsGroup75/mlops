@@ -261,14 +261,14 @@ jobs:
     - name: Run Trivy vulnerability scanner - Service 1
       uses: aquasecurity/trivy-action@master
       with:
-        image-ref: ${{ env.DOCKER_REPOSITORY }}/api-service:${{ github.sha }}
+        image-ref: ${{ env.DOCKER_REPOSITORY }}/api-service:sha-${{ github.sha }}
         format: 'sarif'
         output: 'api-service-trivy-results.sarif'
         
     - name: Run Trivy vulnerability scanner - Service 2
       uses: aquasecurity/trivy-action@master
       with:
-        image-ref: ${{ env.DOCKER_REPOSITORY }}/predict-service:${{ github.sha }}
+        image-ref: ${{ env.DOCKER_REPOSITORY }}/predict-service:sha-${{ github.sha }}
         format: 'sarif'
         output: 'predict-service-trivy-results.sarif'
         
