@@ -121,7 +121,7 @@ jobs:
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
       with:
-        context: ./services/api
+        context: .
         file: ./services/api/Dockerfile
         push: true
         tags: ${{ steps.meta.outputs.tags }}
@@ -161,7 +161,7 @@ jobs:
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
       with:
-        context: ./services/predict
+        context: .
         file: ./services/predict/Dockerfile
         push: true
         tags: ${{ steps.meta.outputs.tags }}
@@ -184,8 +184,8 @@ jobs:
       
     - name: Build services for testing
       run: |
-        docker build -t api-service:test ./services/api
-        docker build -t predict-service:test ./services/predict
+        docker build -t api-service:test -f ./services/api/Dockerfile .
+        docker build -t predict-service:test -f ./services/predict/Dockerfile .
         
     - name: Run integration tests
       run: |
