@@ -1,0 +1,54 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mlops-housing
+  labels:
+    name: mlops-housing
+    app.kubernetes.io/name: mlops-housing
+    app.kubernetes.io/part-of: mlops-platform
+    environment: dev
+  annotations:
+    description: "MLOps Housing Price Prediction Platform"
+---
+# Resource Quota for the namespace
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: mlops-housing-quota
+  namespace: mlops-housing
+spec:
+  hard:
+    requests.cpu: "4"
+    requests.memory: 8Gi
+    limits.cpu: "8"
+    limits.memory: 16Gi
+    persistentvolumeclaims: "10"
+    services: "10"
+    secrets: "10"
+    configmaps: "10"
+---
+# Network Policy (optional - for network isolation)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: mlops-housing-netpol
+  namespace: mlops-housing
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+    - namespaceSelector:
+        matchLabels:
+          name: argocd
+    - podSelector: {}
+  egress:
+  - {} # Allow all egress traffic

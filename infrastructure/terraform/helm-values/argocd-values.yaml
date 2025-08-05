@@ -1,0 +1,117 @@
+# ArgoCD Configuration
+global:
+  image:
+    tag: "v2.9.3"
+
+## Argo CD configuration
+configs:
+  # General Argo CD configuration
+  params:
+    # Enable insecure mode for development (disable for production)
+    server.insecure: true
+    
+  # ArgoCD Server configuration
+  cm:
+    # Enable anonymous access to ArgoCD (disable for production)
+    users.anonymous.enabled: "false"
+    
+    # Enable RBAC
+    policy.default: role:readonly
+    policy.csv: |
+      g, argocd-admins, role:admin
+      g, argocd-developers, role:readonly
+
+## ArgoCD Server
+server:
+  # Enable metric collection
+  metrics:
+    enabled: true
+    service:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8083"
+        prometheus.io/path: "/metrics"
+
+  # Server service configuration
+  service:
+    type: ClusterIP
+    
+  # Ingress configuration (commented out, will use port-forward initially)
+  ingress:
+    enabled: false
+    # annotations:
+    #   kubernetes.io/ingress.class: alb
+    #   alb.ingress.kubernetes.io/scheme: internet-facing
+    #   alb.ingress.kubernetes.io/target-type: ip
+    # hosts:
+    #   - argocd.your-domain.com
+    # tls:
+    #   - secretName: argocd-server-tls
+    #     hosts:
+    #       - argocd.your-domain.com
+
+  # Additional configuration
+  extraArgs:
+    - --insecure
+
+## ArgoCD Application Controller
+controller:
+  metrics:
+    enabled: true
+    service:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8082"
+        prometheus.io/path: "/metrics"
+
+## ArgoCD Repository Server
+repoServer:
+  metrics:
+    enabled: true
+    service:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8084"
+        prometheus.io/path: "/metrics"
+
+## ArgoCD Application Set Controller
+applicationSet:
+  enabled: true
+  metrics:
+    enabled: true
+    service:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+
+## ArgoCD Notifications Controller
+notifications:
+  enabled: true
+  metrics:
+    enabled: true
+    service:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9001"
+        prometheus.io/path: "/metrics"
+
+## Redis
+redis:
+  enabled: true
+  metrics:
+    enabled: true
+    service:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9121"
+        prometheus.io/path: "/metrics"
+
+## ArgoCD Extensions Controller
+extensions:
+  enabled: false
+
+## External Redis (if you want to use external Redis)
+# externalRedis:
+#   host: "redis.example.com"
+#   port: 6379

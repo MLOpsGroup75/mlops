@@ -1,0 +1,149 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mlops-housing-platform
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: mlops-housing-platform
+    app.kubernetes.io/part-of: mlops-platform
+  annotations:
+    # Enable automatic image updates
+    argocd-image-updater.argoproj.io/image-list: |
+      api-service=docker.io/your-dockerhub-username/your-repo/api-service:latest,
+      predict-service=docker.io/your-dockerhub-username/your-repo/predict-service:latest
+    argocd-image-updater.argoproj.io/write-back-method: git
+spec:
+  project: default
+  
+  # Source repository
+  source:
+    repoURL: https://github.com/your-username/your-repo.git  # Update with your repo
+    targetRevision: main
+    path: infrastructure/kubernetes
+    
+  # Destination cluster
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: mlops-housing
+    
+  # Sync policy
+  syncPolicy:
+    automated:
+      prune: true        # Remove resources not defined in Git
+      selfHeal: true     # Automatically sync when drift is detected
+      allowEmpty: false  # Don't sync if no resources found
+    syncOptions:
+    - CreateNamespace=true    # Create namespace if it doesn't exist
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    
+    # Retry configuration
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+        
+  # Health checks
+  revisionHistoryLimit: 10
+  
+  # Resource exclusions/inclusions
+  ignoreDifferences:
+  - group: apps
+    kind: Deployment
+    jsonPointers:
+    - /spec/replicas  # Ignore replica count differences (for HPA)
+    
+---
+# Application Project for better organization
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: mlops-platform
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: mlops-platform
+    app.kubernetes.io/part-of: mlops-platform
+spec:
+  description: MLOps Housing Platform Project
+  
+  # Source repositories allowed
+  sourceRepos:
+  - 'https://github.com/your-username/your-repo.git'  # Update with your repo
+  - 'https://github.com/your-username/*'  # Allow other repos in your org
+  
+  # Destination clusters and namespaces
+  destinations:
+  - namespace: mlops-housing
+    server: https://kubernetes.default.svc
+  - namespace: monitoring
+    server: https://kubernetes.default.svc
+  - namespace: argocd
+    server: https://kubernetes.default.svc
+    
+  # Cluster resource allow list
+  clusterResourceWhitelist:
+  - group: ''
+    kind: Namespace
+  - group: rbac.authorization.k8s.io
+    kind: ClusterRole
+  - group: rbac.authorization.k8s.io
+    kind: ClusterRoleBinding
+  - group: apiextensions.k8s.io
+    kind: CustomResourceDefinition
+  - group: admissionregistration.k8s.io
+    kind: MutatingWebhookConfiguration
+  - group: admissionregistration.k8s.io
+    kind: ValidatingWebhookConfiguration
+    
+  # Namespace resource allow list
+  namespaceResourceWhitelist:
+  - group: ''
+    kind: ConfigMap
+  - group: ''
+    kind: Secret
+  - group: ''
+    kind: Service
+  - group: ''
+    kind: ServiceAccount
+  - group: ''
+    kind: PersistentVolumeClaim
+  - group: apps
+    kind: Deployment
+  - group: apps
+    kind: StatefulSet
+  - group: apps
+    kind: DaemonSet
+  - group: networking.k8s.io
+    kind: Ingress
+  - group: networking.k8s.io
+    kind: NetworkPolicy
+  - group: policy
+    kind: PodDisruptionBudget
+  - group: autoscaling
+    kind: HorizontalPodAutoscaler
+  - group: monitoring.coreos.com
+    kind: ServiceMonitor
+  - group: monitoring.coreos.com
+    kind: PrometheusRule
+    
+  # Role definitions
+  roles:
+  - name: admin
+    description: Admin role for MLOps platform
+    policies:
+    - p, proj:mlops-platform:admin, applications, *, mlops-platform/*, allow
+    - p, proj:mlops-platform:admin, repositories, *, *, allow
+    - p, proj:mlops-platform:admin, clusters, *, *, allow
+    groups:
+    - mlops-admins
+    
+  - name: developer
+    description: Developer role for MLOps platform
+    policies:
+    - p, proj:mlops-platform:developer, applications, get, mlops-platform/*, allow
+    - p, proj:mlops-platform:developer, applications, sync, mlops-platform/*, allow
+    - p, proj:mlops-platform:developer, repositories, get, *, allow
+    groups:
+    - mlops-developers
