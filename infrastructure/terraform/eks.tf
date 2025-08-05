@@ -21,22 +21,11 @@ module "eks" {
       max_size     = config.max_size
       desired_size = config.desired_size
 
-      # Use the default launch template
-      create_launch_template = false
-      launch_template_name   = ""
+      # Use the module's default launch template configuration
+      # create_launch_template and launch_template_name removed to use defaults
 
-      # Remote access via systems manager
-      remote_access = {
-        ec2_ssh_key               = null
-        source_security_group_ids = [aws_security_group.additional.id]
-      }
-
-      # Ensure that the node groups are created before the Kubernetes resources
-      depends_on = [
-        aws_iam_role_policy_attachment.nodes_AmazonEKSWorkerNodePolicy,
-        aws_iam_role_policy_attachment.nodes_AmazonEKS_CNI_Policy,
-        aws_iam_role_policy_attachment.nodes_AmazonEC2ContainerRegistryReadOnly,
-      ]
+      # Security group for additional access
+      vpc_security_group_ids = [aws_security_group.additional.id]
     }
   }
 
@@ -51,9 +40,17 @@ module "eks" {
     },
   ]
 
-  # Cluster access entry
-  # To add the current caller identity as an administrator
-  enable_cluster_creator_admin_permissions = true
+  # Add current user as admin (alternative to enable_cluster_creator_admin_permissions)
+  aws_auth_users = [
+    {
+      userarn  = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+      username = "cluster-creator"
+      groups   = ["system:masters"]
+    },
+  ]
+
+  # Note: enable_cluster_creator_admin_permissions is only available in v20+
+  # For v19, admin access is managed through aws_auth_configmap below
 
   cluster_addons = {
     coredns = {

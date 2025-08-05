@@ -19,16 +19,16 @@ node_groups = {
   main = {
     instance_types = ["t3.medium"]
     min_size       = 1
-    max_size       = 3
-    desired_size   = 2
-    capacity_type  = "ON_DEMAND"
+    max_size       = 2
+    desired_size   = 1
+    capacity_type  = "SPOT"
   }
 }
 
 # Application Configuration
 docker_registry        = "docker.io"
-api_service_image      = "your-dockerhub-username/your-repo/api-service"     # Update with your Docker Hub repo
-predict_service_image  = "your-dockerhub-username/your-repo/predict-service" # Update with your Docker Hub repo
+api_service_image      = "sudhagar/api-service"
+predict_service_image  = "sudhagar/predict-service"
 image_tag              = "latest"
 
 # Feature Flags

@@ -3,6 +3,9 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+# Terraform state/cache
+.terraform/
+
 # DB files
 *.db
 

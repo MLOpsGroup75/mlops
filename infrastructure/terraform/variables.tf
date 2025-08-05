@@ -14,7 +14,7 @@ variable "environment" {
 variable "aws_region" {
   description = "AWS region"
   type        = string
-  default     = "us-west-2"
+  default     = "ap-south-1"
 }
 
 # VPC Configuration
@@ -27,7 +27,7 @@ variable "vpc_cidr" {
 variable "azs" {
   description = "Availability zones"
   type        = list(string)
-  default     = ["us-west-2a", "us-west-2b", "us-west-2c"]
+  default     = ["ap-south-1a", "ap-south-1b", "ap-south-1c"]
 }
 
 variable "private_subnets" {
@@ -61,15 +61,8 @@ variable "node_groups" {
   default = {
     main = {
       instance_types = ["t3.medium"]
-      min_size       = 2
-      max_size       = 10
-      desired_size   = 3
-      capacity_type  = "ON_DEMAND"
-    }
-    spot = {
-      instance_types = ["t3.medium", "t3.large"]
-      min_size       = 0
-      max_size       = 5
+      min_size       = 1
+      max_size       = 3
       desired_size   = 2
       capacity_type  = "SPOT"
     }

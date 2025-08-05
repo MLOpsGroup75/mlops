@@ -17,7 +17,7 @@ spec:
   
   # Source repository
   source:
-    repoURL: https://github.com/your-username/your-repo.git  # Update with your repo
+    repoURL: https://github.com/MLOpsGroup75/mlops.git
     targetRevision: main
     path: infrastructure/kubernetes
     
@@ -70,8 +70,7 @@ spec:
   
   # Source repositories allowed
   sourceRepos:
-  - 'https://github.com/your-username/your-repo.git'  # Update with your repo
-  - 'https://github.com/your-username/*'  # Allow other repos in your org
+  - 'https://github.com/MLOpsGroup75/mlops.git'
   
   # Destination clusters and namespaces
   destinations:

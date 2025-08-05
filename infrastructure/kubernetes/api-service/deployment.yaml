@@ -11,7 +11,7 @@ metadata:
     app.kubernetes.io/part-of: mlops-platform
     app.kubernetes.io/component: api
 spec:
-  replicas: 3
+  replicas: 1
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -33,7 +33,7 @@ spec:
     spec:
       containers:
       - name: api-service
-        image: your-dockerhub-username/your-repo/api-service:latest  # This will be updated by ArgoCD
+        image: sudhagar/api-service:latest  # This will be updated by ArgoCD
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
@@ -53,7 +53,7 @@ spec:
         - name: LOG_DB_PATH
           value: "/app/logs/api_logs.db"
         - name: RATE_LIMIT_REQUESTS
-          value: "100"  # Increased for production
+          value: "3"
         - name: RATE_LIMIT_WINDOW
           value: "60"
         - name: SERVICE_NAME

@@ -64,30 +64,7 @@ spec:
             port:
               number: 8000
               
-  # Custom domain (uncomment when you have a domain)
-  # - host: mlops.your-domain.com
-  #   http:
-  #     paths:
-  #     - path: /api
-  #       pathType: Prefix
-  #       backend:
-  #         service:
-  #           name: api-service
-  #           port:
-  #             number: 8000
-  #     - path: /predict
-  #       pathType: Prefix
-  #       backend:
-  #         service:
-  #           name: predict-service
-  #           port:
-  #             number: 8001
-              
-  # TLS configuration (uncomment when you have SSL)
-  # tls:
-  # - hosts:
-  #   - mlops.your-domain.com
-  #   secretName: mlops-tls-secret
+  # Custom domain not required as per specifications
   
 ---
 # Service Monitor for Prometheus (scrape metrics from services)

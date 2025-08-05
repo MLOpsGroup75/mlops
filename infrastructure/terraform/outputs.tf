@@ -87,7 +87,7 @@ output "grafana_url" {
 # Kubectl Configuration
 output "configure_kubectl" {
   description = "Configure kubectl: make sure you're logged in with the correct AWS profile and run the following command to update your kubeconfig"
-  value       = "aws eks --region ${var.aws_region} update-kubeconfig --name ${module.eks.cluster_name}"
+  value       = "aws eks --region ap-south-1 update-kubeconfig --name ${module.eks.cluster_name}"
 }
 
 # Application URLs (when deployed)
@@ -106,7 +106,7 @@ output "next_steps" {
   description = "Next steps after infrastructure deployment"
   value = <<EOF
 1. Configure kubectl: ${module.eks.cluster_name}
-   aws eks --region ${var.aws_region} update-kubeconfig --name ${module.eks.cluster_name}
+   aws eks --region ap-south-1 update-kubeconfig --name ${module.eks.cluster_name}
 
 2. Verify cluster access:
    kubectl get nodes

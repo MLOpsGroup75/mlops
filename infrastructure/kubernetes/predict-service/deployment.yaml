@@ -11,7 +11,7 @@ metadata:
     app.kubernetes.io/part-of: mlops-platform
     app.kubernetes.io/component: predict
 spec:
-  replicas: 2
+  replicas: 1
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -33,7 +33,7 @@ spec:
     spec:
       containers:
       - name: predict-service
-        image: your-dockerhub-username/your-repo/predict-service:latest  # This will be updated by ArgoCD
+        image: sudhagar/predict-service:latest  # This will be updated by ArgoCD
         imagePullPolicy: Always
         ports:
         - containerPort: 8001
