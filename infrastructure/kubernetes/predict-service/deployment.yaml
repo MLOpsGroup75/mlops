@@ -33,7 +33,7 @@ spec:
     spec:
       containers:
       - name: predict-service
-        image: sudhagar/predict-service:latest  # This will be updated by ArgoCD
+        image: sudhagar/predict-service:9fe66a858bf039f662bb37b3d0520f682a1d6771
         imagePullPolicy: Always
         ports:
         - containerPort: 8001
