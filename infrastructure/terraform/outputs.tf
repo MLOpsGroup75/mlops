@@ -4,6 +4,11 @@ output "vpc_id" {
   value       = module.vpc.vpc_id
 }
 
+output "alb_security_group_id" {
+  description = "ALB Security Group ID"
+  value       = aws_security_group.alb.id
+}
+
 output "vpc_cidr_block" {
   description = "CIDR block of the VPC"
   value       = module.vpc.vpc_cidr_block

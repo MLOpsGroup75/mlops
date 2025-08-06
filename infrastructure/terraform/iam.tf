@@ -150,11 +150,7 @@ resource "aws_iam_policy" "aws_load_balancer_controller" {
           "arn:aws:ec2:*:*:security-group/*",
           "arn:aws:ec2:*:*:vpc/*"
         ]
-        Condition = {
-          StringEquals = {
-            "ec2:CreateAction" = "CreateSecurityGroup"
-          }
-        }
+
       },
       {
         Effect = "Allow"
