@@ -1,4 +1,4 @@
-curl -X POST "${URL-https://localhost:8000}/v1/predict"   -H "Content-Type: application/json"   -d '{
+curl -X POST "${URL-https://localhost:8000/v1/predict}"   -H "Content-Type: application/json"   -d '{
     "longitude": -122.23,
     "latitude": 37.88,
     "housingMedianAge": 41.0,
