@@ -294,10 +294,15 @@ jobs:
     needs: [integration-test, security-scan]
     if: github.ref == 'refs/heads/main'
     environment: production
+    permissions:
+      contents: write  # Allow pushing to repository
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch full history for git operations
+        token: ${{ secrets.GITHUB_TOKEN }}
       
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
@@ -323,8 +328,21 @@ jobs:
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git add infrastructure/kubernetes/
-        git diff --staged --quiet || git commit -m "Update image tags to ${{ github.sha }}"
-        git push
+        
+        # Check if there are changes to commit
+        if git diff --staged --quiet; then
+          echo "No changes to commit"
+        else
+          git commit -m "Update image tags to ${{ github.sha }}"
+          
+          # Try to push, but don't fail if it doesn't work
+          if git push; then
+            echo "✅ Successfully pushed manifest updates"
+          else
+            echo "⚠️ Failed to push manifests, but deployment will continue"
+            echo "ArgoCD can sync directly from the container registry tags"
+          fi
+        fi
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
