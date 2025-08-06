@@ -25,8 +25,7 @@ metadata:
     # Load balancer attributes
     alb.ingress.kubernetes.io/load-balancer-attributes: routing.http2.enabled=true,idle_timeout.timeout_seconds=60
     
-    # Security groups
-    alb.ingress.kubernetes.io/security-groups: "sg-xxxxx"  # Will be updated with actual security group
+    # Security groups - Let ALB controller manage automatically
     
     # Tags
     alb.ingress.kubernetes.io/tags: Environment=production,Project=mlops-housing
