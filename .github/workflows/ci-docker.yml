@@ -304,11 +304,11 @@ jobs:
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ vars.AWS_REGION || 'us-west-2' }}
+        aws-region: ${{ vars.AWS_REGION || 'ap-south-1' }}
         
     - name: Update kubeconfig
       run: |
-        aws eks update-kubeconfig --region ${{ vars.AWS_REGION || 'us-west-2' }} --name ${{ vars.EKS_CLUSTER_NAME || 'mlops-housing-dev' }}
+        aws eks update-kubeconfig --region ${{ vars.AWS_REGION || 'ap-south-1' }} --name ${{ vars.EKS_CLUSTER_NAME || 'mlops-housing-dev' }}
         
     - name: Update image tags in Kubernetes manifests
       run: |
