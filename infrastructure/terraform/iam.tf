@@ -62,7 +62,7 @@ resource "aws_iam_role" "aws_load_balancer_controller" {
 
   assume_role_policy = jsonencode({
     Statement = [{
-      Action = "sts:AssumeRole"
+      Action = "sts:AssumeRoleWithWebIdentity"
       Effect = "Allow"
       Principal = {
         Federated = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/${replace(module.eks.cluster_oidc_issuer_url, "https://", "")}"
@@ -146,13 +146,13 @@ resource "aws_iam_policy" "aws_load_balancer_controller" {
           "ec2:CreateSecurityGroup",
           "ec2:CreateTags"
         ]
-        Resource = "arn:aws:ec2:*:*:security-group/*"
+        Resource = [
+          "arn:aws:ec2:*:*:security-group/*",
+          "arn:aws:ec2:*:*:vpc/*"
+        ]
         Condition = {
           StringEquals = {
             "ec2:CreateAction" = "CreateSecurityGroup"
-          }
-          Null = {
-            "aws:RequestTag/elbv2.k8s.aws/cluster" = "false"
           }
         }
       },
@@ -218,12 +218,6 @@ resource "aws_iam_policy" "aws_load_balancer_controller" {
           "arn:aws:elasticloadbalancing:*:*:loadbalancer/net/*/*",
           "arn:aws:elasticloadbalancing:*:*:loadbalancer/app/*/*"
         ]
-        Condition = {
-          Null = {
-            "aws:RequestTag/elbv2.k8s.aws/cluster" = "true"
-            "aws:ResourceTag/elbv2.k8s.aws/cluster" = "false"
-          }
-        }
       },
       {
         Effect = "Allow"
