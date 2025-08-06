@@ -4,6 +4,9 @@ __pycache__/
 *$py.class
 
 # Terraform state/cache
+*.tfplan
+*.tfstate
+*.tfstate.backup
 .terraform/
 
 # DB files

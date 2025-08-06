@@ -18,9 +18,9 @@ cluster_version = "1.28"
 node_groups = {
   main = {
     instance_types = ["t3.medium"]
-    min_size       = 1
-    max_size       = 2
-    desired_size   = 1
+    min_size       = 2
+    max_size       = 3
+    desired_size   = 2
     capacity_type  = "SPOT"
   }
 }
@@ -37,7 +37,7 @@ enable_monitoring = true
 
 # Versions (update as needed)
 argocd_chart_version     = "5.51.6"
-prometheus_chart_version = "25.8.0"
+prometheus_chart_version = "58.2.1"
 
 # Domain Configuration (not required)
 # Custom domain not needed as per specifications

@@ -1,0 +1,173 @@
+# Ultra-minimal Prometheus Stack for single t3.medium node
+# Only essential monitoring components
+
+# Global settings
+global:
+  rbac:
+    create: true
+
+# Prometheus - minimal configuration
+prometheus:
+  enabled: true
+  
+  prometheusSpec:
+    # Minimal storage
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: gp2
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 5Gi  # Reduced to minimum
+
+    # Short retention to save space
+    retention: 7d
+    retentionSize: 3GB
+
+    # Very low resource requests
+    resources:
+      requests:
+        cpu: 100m      # Minimal CPU
+        memory: 256Mi  # Minimal memory
+      limits:
+        cpu: 200m
+        memory: 512Mi
+
+    # Disable resource-intensive features
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    
+    # Minimal scrape config
+    scrapeInterval: "60s"
+    evaluationInterval: "60s"
+
+# Grafana - very minimal
+grafana:
+  enabled: true
+  
+  adminPassword: "admin123!"
+  
+  service:
+    type: ClusterIP
+    
+  persistence:
+    enabled: false  # No persistence to save resources
+    
+  resources:
+    requests:
+      cpu: 50m       # Minimal
+      memory: 128Mi  # Minimal
+    limits:
+      cpu: 100m
+      memory: 256Mi
+
+  # Minimal dashboard config
+  defaultDashboardsEnabled: false
+  dashboardProviders: {}
+  dashboards: {}
+
+# AlertManager - minimal
+alertmanager:
+  enabled: true
+  
+  alertmanagerSpec:
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: gp2
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 1Gi  # Minimal storage
+
+    resources:
+      requests:
+        cpu: 25m      # Minimal
+        memory: 32Mi  # Minimal
+      limits:
+        cpu: 50m
+        memory: 64Mi
+
+# Essential components only
+nodeExporter:
+  enabled: true
+  
+kubeStateMetrics:
+  enabled: true
+
+# Disable ALL optional components to save pods/resources
+coreDns:
+  enabled: false
+
+kubeDns:
+  enabled: false
+
+kubeControllerManager:
+  enabled: false
+
+kubeScheduler:
+  enabled: false
+
+kubeProxy:
+  enabled: false
+
+kubelet:
+  enabled: false  # Disable even kubelet monitoring to save resources
+
+kubeEtcd:
+  enabled: false
+
+# Prometheus Operator
+prometheusOperator:
+  enabled: true
+  
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+
+  # Completely disable admission webhooks and related components
+  admissionWebhooks:
+    enabled: false
+    patch:
+      enabled: false
+    certManager:
+      enabled: false
+  
+  # Disable TLS requirements
+  tls:
+    enabled: false
+
+# Minimal alerting rules
+defaultRules:
+  create: true
+  rules:
+    alertmanager: false
+    etcd: false
+    general: false      # Disable even general rules
+    k8s: false
+    kubeApiserver: false
+    kubeApiserverAvailability: false
+    kubeApiserverError: false
+    kubeApiserverSlos: false
+    kubelet: false
+    kubeProxy: false
+    kubePrometheusGeneral: false
+    kubePrometheusNodeAlerting: false
+    kubePrometheusNodeRecording: false
+    kubernetesAbsent: false
+    kubernetesApps: false
+    kubernetesResources: false
+    kubernetesStorage: false
+    kubernetesSystem: false
+    kubeScheduler: false
+    kubeStateMetrics: false
+    network: false
+    node: false
+    prometheus: true      # Only keep Prometheus self-monitoring
+    prometheusOperator: true

@@ -26,28 +26,33 @@ module "eks" {
 
       # Security group for additional access
       vpc_security_group_ids = [aws_security_group.additional.id]
+      
+      # IAM role policies for EBS CSI driver
+      iam_role_additional_policies = {
+        AmazonEBSCSIDriverPolicy = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+      }
     }
   }
 
-  # aws-auth configmap
-  manage_aws_auth_configmap = true
+  # aws-auth configmap - temporarily disabled for initial deployment
+  # Will be configured manually after cluster creation
+  manage_aws_auth_configmap = false
 
-  aws_auth_roles = [
-    {
-      rolearn  = aws_iam_role.eks_admin.arn
-      username = "eks-admin"
-      groups   = ["system:masters"]
-    },
-  ]
+  # aws_auth_roles = [
+  #   {
+  #     rolearn  = aws_iam_role.eks_admin.arn
+  #     username = "eks-admin"
+  #     groups   = ["system:masters"]
+  #   },
+  # ]
 
-  # Add current user as admin (alternative to enable_cluster_creator_admin_permissions)
-  aws_auth_users = [
-    {
-      userarn  = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
-      username = "cluster-creator"
-      groups   = ["system:masters"]
-    },
-  ]
+  # aws_auth_users = [
+  #   {
+  #     userarn  = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+  #     username = "cluster-creator"
+  #     groups   = ["system:masters"]
+  #   },
+  # ]
 
   # Note: enable_cluster_creator_admin_permissions is only available in v20+
   # For v19, admin access is managed through aws_auth_configmap below
@@ -156,9 +161,57 @@ resource "helm_release" "prometheus" {
   create_namespace = true
   version          = var.prometheus_chart_version
 
+  # Increase timeouts for complex chart installation
+  timeout          = 900  # 15 minutes
+  wait             = true
+  wait_for_jobs    = true
+
   values = [
-    file("${path.module}/helm-values/prometheus-values.yaml")
+    file("${path.module}/helm-values/prometheus-minimal.yaml")
   ]
+
+  depends_on = [module.eks]
+}
+
+# EBS CSI Driver Service Account and IAM Role
+resource "aws_iam_role" "ebs_csi_driver" {
+  name = "${local.name}-ebs-csi-driver"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRoleWithWebIdentity"
+        Effect = "Allow"
+        Principal = {
+          Federated = module.eks.oidc_provider_arn
+        }
+        Condition = {
+          StringEquals = {
+            "${replace(module.eks.cluster_oidc_issuer_url, "https://", "")}:sub" = "system:serviceaccount:kube-system:ebs-csi-controller-sa"
+            "${replace(module.eks.cluster_oidc_issuer_url, "https://", "")}:aud" = "sts.amazonaws.com"
+          }
+        }
+      }
+    ]
+  })
+
+  tags = local.tags
+}
+
+resource "aws_iam_role_policy_attachment" "ebs_csi_driver" {
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+  role       = aws_iam_role.ebs_csi_driver.name
+}
+
+resource "kubernetes_service_account" "ebs_csi_controller" {
+  metadata {
+    name      = "ebs-csi-controller-sa"
+    namespace = "kube-system"
+    annotations = {
+      "eks.amazonaws.com/role-arn" = aws_iam_role.ebs_csi_driver.arn
+    }
+  }
 
   depends_on = [module.eks]
 }

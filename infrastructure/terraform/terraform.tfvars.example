@@ -37,7 +37,7 @@ enable_monitoring = true
 
 # Versions (update as needed)
 argocd_chart_version     = "5.51.6"
-prometheus_chart_version = "25.8.0"
+prometheus_chart_version = "58.2.1"
 
 # Domain Configuration (not required)
 # Custom domain not needed as per specifications

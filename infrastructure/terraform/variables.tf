@@ -61,7 +61,7 @@ variable "node_groups" {
   default = {
     main = {
       instance_types = ["t3.medium"]
-      min_size       = 1
+      min_size       = 2
       max_size       = 3
       desired_size   = 2
       capacity_type  = "SPOT"
@@ -92,7 +92,7 @@ variable "enable_monitoring" {
 variable "prometheus_chart_version" {
   description = "Prometheus Helm chart version"
   type        = string
-  default     = "25.8.0"
+  default     = "58.2.1"  # Updated to a valid version
 }
 
 # Application Configuration

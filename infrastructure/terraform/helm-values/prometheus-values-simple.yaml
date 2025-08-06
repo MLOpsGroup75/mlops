@@ -1,0 +1,150 @@
+# Simplified Prometheus Stack Configuration
+# Minimal configuration to avoid installation timeouts and issues
+
+## Global Configuration
+global:
+  rbac:
+    create: true
+
+## Prometheus Configuration
+prometheus:
+  enabled: true
+  
+  prometheusSpec:
+    # Storage configuration - simplified
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: gp2
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi  # Reduced from 20Gi
+
+    # Retention settings - simplified
+    retention: 15d  # Reduced from 30d
+    retentionSize: 8GB  # Reduced from 15GB
+
+    # Resource limits - reduced for faster startup
+    resources:
+      limits:
+        cpu: 500m
+        memory: 1Gi
+      requests:
+        cpu: 250m
+        memory: 512Mi
+
+    # Disable complex selectors that might cause issues
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+
+## Grafana Configuration - simplified
+grafana:
+  enabled: true
+  
+  # Admin credentials
+  adminPassword: "admin123!"
+  
+  # Service configuration
+  service:
+    type: ClusterIP
+    
+  # Persistence - simplified
+  persistence:
+    enabled: true
+    type: pvc
+    storageClassName: gp2
+    accessModes:
+      - ReadWriteOnce
+    size: 5Gi  # Reduced from 10Gi
+
+  # Resource limits - reduced
+  resources:
+    limits:
+      cpu: 200m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+  # Disable complex dashboard configurations
+  defaultDashboardsEnabled: true
+  dashboardProviders: {}
+  dashboards: {}
+
+## AlertManager Configuration - simplified
+alertmanager:
+  enabled: true
+  
+  alertmanagerSpec:
+    # Storage configuration - simplified
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: gp2
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 2Gi  # Reduced from 5Gi
+
+    # Resource limits - reduced
+    resources:
+      limits:
+        cpu: 100m
+        memory: 128Mi
+      requests:
+        cpu: 50m
+        memory: 64Mi
+
+## Essential monitoring components only
+nodeExporter:
+  enabled: true
+
+kubeStateMetrics:
+  enabled: true
+
+# Disable optional components to speed up installation
+coreDns:
+  enabled: false
+
+kubeControllerManager:
+  enabled: false
+
+kubeScheduler:
+  enabled: false
+
+kubeProxy:
+  enabled: false
+
+kubelet:
+  enabled: true
+
+## Default Rules - minimal set
+defaultRules:
+  create: true
+  rules:
+    alertmanager: false
+    etcd: false
+    general: true
+    k8s: true
+    kubeApiserver: false
+    kubeApiserverAvailability: false
+    kubeApiserverError: false
+    kubeApiserverSlos: false
+    kubelet: true
+    kubeProxy: false
+    kubePrometheusGeneral: true
+    kubePrometheusNodeAlerting: false
+    kubePrometheusNodeRecording: false
+    kubernetesAbsent: false
+    kubernetesApps: true
+    kubernetesResources: true
+    kubernetesStorage: false
+    kubernetesSystem: false
+    kubeScheduler: false
+    kubeStateMetrics: true
+    network: false
+    node: true
+    prometheus: true
+    prometheusOperator: true
