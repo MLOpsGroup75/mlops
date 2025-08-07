@@ -41,15 +41,15 @@ jobs:
         # Install linting tools
         pip install flake8
         
-          - name: Run linters for API service
-        run: |
-          echo "Running linters for API service..."
-          
-          # Run flake8 for style and error checking
-          echo "Running flake8..."
-          flake8 services/api/ --max-line-length=120 --extend-ignore=E203,W503,F401
-          
-          echo "Linting completed for API service"
+    - name: Run linters for API service
+      run: |
+        echo "Running linters for API service..."
+        
+        # Run flake8 for style and error checking
+        echo "Running flake8..."
+        flake8 services/api/ --max-line-length=120 --extend-ignore=E203,W503,F401
+        
+        echo "Linting completed for API service"
         
     - name: Run tests
       run: |
@@ -91,15 +91,15 @@ jobs:
         # Install linting tools
         pip install flake8
         
-          - name: Run linters for Predict service
-        run: |
-          echo "Running linters for Predict service..."
-          
-          # Run flake8 for style and error checking
-          echo "Running flake8..."
-          flake8 services/predict/ --max-line-length=120 --extend-ignore=E203,W503,F401,F821
-          
-          echo "Linting completed for Predict service"
+    - name: Run linters for Predict service
+      run: |
+        echo "Running linters for Predict service..."
+        
+        # Run flake8 for style and error checking
+        echo "Running flake8..."
+        flake8 services/predict/ --max-line-length=120 --extend-ignore=E203,W503,F401,F821
+        
+        echo "Linting completed for Predict service"
         
     - name: Run tests
       run: |
