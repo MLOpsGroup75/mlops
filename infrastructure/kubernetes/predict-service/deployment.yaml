@@ -33,7 +33,7 @@ spec:
     spec:
       containers:
       - name: predict-service
-        image: sudhagar/predict-service:sha-bf3d25cca94bb9d2766cb1ae8e1bf93e49bfd62e
+        image: sudhagar/predict-service:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8001
