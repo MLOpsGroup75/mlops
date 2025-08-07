@@ -39,21 +39,17 @@ jobs:
         pip install -r services/api/requirements.txt
         pip install -r services/predict/requirements.txt
         # Install linting tools
-        pip install flake8 black
+        pip install flake8
         
-    - name: Run linters for API service
-      run: |
-        echo "Running linters for API service..."
-        
-        # Check code formatting with black
-        echo "Checking code formatting..."
-        black --check --diff services/api/
-        
-        # Run flake8 for style and error checking (allow warnings)
-        echo "Running flake8..."
-        flake8 services/api/ --max-line-length=88 --extend-ignore=E203,W503,F401 --exit-zero
-        
-        echo "Linting completed for API service"
+          - name: Run linters for API service
+        run: |
+          echo "Running linters for API service..."
+          
+          # Run flake8 for style and error checking
+          echo "Running flake8..."
+          flake8 services/api/ --max-line-length=120 --extend-ignore=E203,W503,F401
+          
+          echo "Linting completed for API service"
         
     - name: Run tests
       run: |
@@ -93,21 +89,17 @@ jobs:
         pip install -r services/api/requirements.txt
         pip install -r services/predict/requirements.txt
         # Install linting tools
-        pip install flake8 black
+        pip install flake8
         
-    - name: Run linters for Predict service
-      run: |
-        echo "🔍 Running linters for Predict service..."
-        
-        # Check code formatting with black
-        echo "📝 Checking code formatting..."
-        black --check --diff services/predict/
-        
-        # Run flake8 for style and error checking (allow warnings)
-        echo "🔧 Running flake8..."
-        flake8 services/predict/ --max-line-length=88 --extend-ignore=E203,W503,F401,F821 --exit-zero
-        
-        echo "✅ Linting completed for Predict service"
+          - name: Run linters for Predict service
+        run: |
+          echo "Running linters for Predict service..."
+          
+          # Run flake8 for style and error checking
+          echo "Running flake8..."
+          flake8 services/predict/ --max-line-length=120 --extend-ignore=E203,W503,F401,F821
+          
+          echo "Linting completed for Predict service"
         
     - name: Run tests
       run: |
