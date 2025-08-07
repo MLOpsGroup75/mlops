@@ -14,8 +14,8 @@ from typing import Optional, Dict, Any, Tuple
 class LoggingMiddleware(BaseHTTPMiddleware):
     """Middleware to log all incoming and outgoing requests/responses"""
 
-    # Define health and metric endpoints that can be excluded from logging
-    HEALTH_METRIC_ENDPOINTS = {"/health", "/readiness", "/metrics"}
+    # Define endpoints that should be included in logging
+    LOG_ENDPOINTS = {"/api/v1/predict", "/v1/predict", "/predict/v1/predict"}
 
     def __init__(self, app, service_name: str = "api"):
         super().__init__(app)
@@ -24,9 +24,9 @@ class LoggingMiddleware(BaseHTTPMiddleware):
 
     def _should_log_endpoint(self, path: str) -> bool:
         """Check if we should log this endpoint based on settings"""
-        if path in self.HEALTH_METRIC_ENDPOINTS:
-            return settings.log_health_endpoints
-        return True
+        if path in self.LOG_ENDPOINTS:
+            return True
+        return settings.log_all_endpoints
 
     def _is_json_content(self, content_type: str) -> bool:
         """Check if content type is JSON"""

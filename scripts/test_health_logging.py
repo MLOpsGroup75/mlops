@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Test script to verify that health endpoint logging can be enabled/disabled.
-This script demonstrates the new log_health_endpoints flag functionality.
+This script demonstrates the new log_all_endpoints flag functionality.
 """
 
 import requests
@@ -37,8 +37,8 @@ def test_health_logging_feature():
     base_url = f"http://{settings.api_host}:{settings.api_port}"
     
     # Display current setting
-    print(f"Current log_health_endpoints setting: {settings.log_health_endpoints}")
-    print(f"Expected behavior: {'Logging ENABLED' if settings.log_health_endpoints else 'Logging DISABLED'} for health endpoints")
+    print(f"Current log_all_endpoints setting: {settings.log_all_endpoints}")
+    print(f"Expected behavior: {'Logging ENABLED' if settings.log_all_endpoints else 'Logging DISABLED'} for health endpoints")
     print()
     
     # Test endpoints that should be affected by the flag
@@ -54,7 +54,7 @@ def test_health_logging_feature():
         ("/v1/predict", "Prediction Endpoint (POST will fail but should be logged)")
     ]
     
-    print("Testing Health & Metric Endpoints (affected by log_health_endpoints flag):")
+    print("Testing Health & Metric Endpoints (affected by log_all_endpoints flag):")
     for endpoint, name in health_endpoints:
         test_endpoint(f"{base_url}{endpoint}", name)
     
@@ -63,7 +63,7 @@ def test_health_logging_feature():
         test_endpoint(f"{base_url}{endpoint}", name)
     
     print(f"\n📝 Check the logs to verify:")
-    print(f"   - Health endpoints (/health, /readiness, /metrics) should {'APPEAR' if settings.log_health_endpoints else 'NOT APPEAR'} in logs")
+    print(f"   - Health endpoints (/health, /readiness, /metrics) should {'APPEAR' if settings.log_all_endpoints else 'NOT APPEAR'} in logs")
     print(f"   - Regular endpoints should ALWAYS appear in logs")
     print(f"   - Log file location: {settings.log_db_path}")
 
@@ -74,11 +74,11 @@ def show_configuration_options():
     print("=" * 50)
     print("To ENABLE health endpoint logging:")
     print("  1. Set environment variable: LOG_HEALTH_ENDPOINTS=true")
-    print("  2. Or modify config/settings.py: log_health_endpoints = True")
+    print("  2. Or modify config/settings.py: log_all_endpoints = True")
     print()
     print("To DISABLE health endpoint logging (default):")
     print("  1. Set environment variable: LOG_HEALTH_ENDPOINTS=false") 
-    print("  2. Or modify config/settings.py: log_health_endpoints = False")
+    print("  2. Or modify config/settings.py: log_all_endpoints = False")
     print()
     print("Affected endpoints:")
     print("  - /health")

@@ -43,7 +43,7 @@ class TestSettingsDefaults:
         assert settings.log_level == "INFO"
         assert settings.log_to_file is True
         assert settings.log_db_path == "logs/app_logs.db"
-        assert settings.log_health_endpoints is False
+        assert settings.log_all_endpoints is False
         assert settings.log_request_body is True
         assert settings.max_body_log_size == 10000
     
@@ -132,7 +132,7 @@ class TestSettingsEnvironmentVariables:
             assert settings.log_level == "DEBUG"
             assert settings.log_to_file is False
             assert settings.log_db_path == "/custom/logs/app.db"
-            assert settings.log_health_endpoints is True
+            assert settings.log_all_endpoints is True
             assert settings.log_request_body is False
             assert settings.max_body_log_size == 5000
     

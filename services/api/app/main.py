@@ -256,4 +256,3 @@ if __name__ == "__main__":
         reload=settings.api_debug,
         log_level=settings.log_level.lower(),
     )
-# Trigger CI/CD for proper SHA-tagged deployment

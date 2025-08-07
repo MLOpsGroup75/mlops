@@ -139,7 +139,7 @@ def test_json_logging_configuration():
     print("Current Configuration:")
     print(f"  log_request_body: {settings.log_request_body}")
     print(f"  max_body_log_size: {settings.max_body_log_size}")
-    print(f"  log_health_endpoints: {settings.log_health_endpoints}")
+    print(f"  log_all_endpoints: {settings.log_all_endpoints}")
     
     print("\nConfiguration Options:")
     print("  Environment Variables:")
@@ -150,7 +150,7 @@ def test_json_logging_configuration():
     print("\n  Or in config/settings.py:")
     print("    log_request_body = True/False")
     print("    max_body_log_size = <bytes>")
-    print("    log_health_endpoints = True/False")
+    print("    log_all_endpoints = True/False")
     
     print("\nLogging Details:")
     print("  - Request bodies are logged for POST/PUT/PATCH methods")
@@ -158,7 +158,7 @@ def test_json_logging_configuration():
     print("  - Only JSON content is parsed and logged as structured data")
     print("  - Non-JSON content is logged with metadata only")
     print("  - Large bodies are truncated based on max_body_log_size")
-    print("  - Health endpoints (/health, /readiness, /metrics) respect log_health_endpoints setting")
+    print("  - Health endpoints (/health, /readiness, /metrics) respect log_all_endpoints setting")
 
 if __name__ == "__main__":
     print("MLOps JSON Body Logging Test")
