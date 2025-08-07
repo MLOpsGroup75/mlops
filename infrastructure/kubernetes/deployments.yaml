@@ -1,0 +1,282 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-service
+  namespace: mlops-housing
+  labels:
+    app: api-service
+    component: api
+    version: v1
+    app.kubernetes.io/name: api-service
+    app.kubernetes.io/part-of: mlops-platform
+    app.kubernetes.io/component: api
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: api-service
+  template:
+    metadata:
+      labels:
+        app: api-service
+        component: api
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: api-service
+        image: sudhagar/api-service:06e01b56e0c72192b7b90ccc6132b84b13a7773c
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+          name: http
+          protocol: TCP
+        env:
+        - name: API_HOST
+          value: "0.0.0.0"
+        - name: API_PORT
+          value: "8000"
+        - name: PREDICT_URL
+          value: "http://predict-service:8001"
+        - name: LOG_LEVEL
+          value: "INFO"
+        - name: LOG_TO_FILE
+          value: "true"
+        - name: LOG_DB_PATH
+          value: "/app/logs/api_logs.db"
+        - name: RATE_LIMIT_REQUESTS
+          value: "3"
+        - name: RATE_LIMIT_WINDOW
+          value: "60"
+        - name: SERVICE_NAME
+          value: "api"
+        - name: ENVIRONMENT
+          value: "production"
+        
+        # Health checks
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+          
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+          
+        # Resource limits
+        resources:
+          requests:
+            cpu: 200m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+            
+        # Volume mounts
+        volumeMounts:
+        - name: logs-volume
+          mountPath: /app/logs
+        - name: data-volume
+          mountPath: /app/data
+          
+        # Security context
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+            - ALL
+            
+      # Volumes
+      volumes:
+      - name: logs-volume
+        emptyDir: {}
+      - name: data-volume
+        emptyDir: {}
+        
+      # Pod security context
+      securityContext:
+        fsGroup: 1000
+        
+      # Node selection (optional)
+      nodeSelector:
+        kubernetes.io/os: linux
+        
+      # Tolerations (optional)
+      tolerations:
+      - key: "node.kubernetes.io/not-ready"
+        operator: "Exists"
+        effect: "NoExecute"
+        tolerationSeconds: 300
+      - key: "node.kubernetes.io/unreachable"
+        operator: "Exists"
+        effect: "NoExecute"
+        tolerationSeconds: 300---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: predict-service
+  namespace: mlops-housing
+  labels:
+    app: predict-service
+    component: predict
+    version: v1
+    app.kubernetes.io/name: predict-service
+    app.kubernetes.io/part-of: mlops-platform
+    app.kubernetes.io/component: predict
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: predict-service
+  template:
+    metadata:
+      labels:
+        app: predict-service
+        component: predict
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8001"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: predict-service
+        image: sudhagar/predict-service:06e01b56e0c72192b7b90ccc6132b84b13a7773c
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8001
+          name: http
+          protocol: TCP
+        env:
+        - name: PREDICT_HOST
+          value: "0.0.0.0"
+        - name: PREDICT_PORT
+          value: "8001"
+        - name: LOG_LEVEL
+          value: "INFO"
+        - name: LOG_TO_FILE
+          value: "true"
+        - name: LOG_DB_PATH
+          value: "/app/logs/predict_logs.db"
+        - name: MODEL_PATH
+          value: "/app/model/artifacts/housing_model.pkl"
+        - name: MODEL_ACCURACY
+          value: "0.85"
+        - name: SERVICE_NAME
+          value: "predict"
+        - name: ENVIRONMENT
+          value: "production"
+        
+        # Health checks
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8001
+          initialDelaySeconds: 60  # Longer for model loading
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+          
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8001
+          initialDelaySeconds: 30  # Wait for model to load
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+          
+        # Resource limits (higher for ML workload)
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: 1000m
+            memory: 2Gi
+            
+        # Volume mounts
+        volumeMounts:
+        - name: logs-volume
+          mountPath: /app/logs
+        - name: model-volume
+          mountPath: /app/model
+        - name: data-volume
+          mountPath: /app/data
+          
+        # Security context
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+            - ALL
+            
+      # Volumes
+      volumes:
+      - name: logs-volume
+        emptyDir: {}
+      - name: model-volume
+        emptyDir: {}
+      - name: data-volume
+        emptyDir: {}
+        
+      # Pod security context
+      securityContext:
+        fsGroup: 1000
+        
+      # Node selection (optional)
+      nodeSelector:
+        kubernetes.io/os: linux
+        
+      # Tolerations (optional)
+      tolerations:
+      - key: "node.kubernetes.io/not-ready"
+        operator: "Exists"
+        effect: "NoExecute"
+        tolerationSeconds: 300
+      - key: "node.kubernetes.io/unreachable"
+        operator: "Exists"
+        effect: "NoExecute"
+        tolerationSeconds: 300
+        
+      # Pod Anti-Affinity (spread across nodes)
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - predict-service
+              topologyKey: kubernetes.io/hostname
