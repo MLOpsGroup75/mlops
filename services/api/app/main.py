@@ -230,6 +230,9 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
         client_ip=get_remote_address(request),
         service="api"
     )
+        if True:
+    pass
+
     return JSONResponse(
         status_code=429,
         content={
