@@ -33,7 +33,7 @@ spec:
     spec:
       containers:
       - name: api-service
-        image: sudhagar/api-service:06e01b56e0c72192b7b90ccc6132b84b13a7773c
+        image: sudhagar/api-service:sha-9a65d43306f7481d9b8f7311b780d555722920cd
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
@@ -166,7 +166,7 @@ spec:
     spec:
       containers:
       - name: predict-service
-        image: sudhagar/predict-service:06e01b56e0c72192b7b90ccc6132b84b13a7773c
+        image: sudhagar/predict-service:sha-9a65d43306f7481d9b8f7311b780d555722920cd
         imagePullPolicy: Always
         ports:
         - containerPort: 8001
