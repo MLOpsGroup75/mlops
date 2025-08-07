@@ -2,7 +2,7 @@ import asyncio
 import time
 import uuid
 from datetime import datetime
-from fastapi import FastAPI, HTTPException, Depends, Request, status
+from fastapi import FastAPI, HTTPException, Depends, Request, status, APIRouter
 from fastapi.responses import PlainTextResponse, JSONResponse
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -36,6 +36,9 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc"
 )
+
+# Create API router for endpoints that should be accessible via ALB without /api prefix
+api_router = APIRouter()
 
 # Add rate limiting
 app.state.limiter = limiter
@@ -109,7 +112,7 @@ async def call_predict_service(prediction_request: InternalPredictionRequest) ->
         )
 
 
-@app.post("/v1/predict", response_model=PredictionSuccess)
+@api_router.post("/v1/predict", response_model=PredictionSuccess)
 @limiter.limit(f"{settings.rate_limit_requests}/{settings.rate_limit_window}seconds")
 async def predict_housing_price(
     request: Request,
@@ -235,6 +238,13 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
             "retry_after": exc.retry_after if hasattr(exc, 'retry_after') else 60
         }
     )
+
+
+# Include the API router twice:
+# 1. With /api prefix for ALB routing (ALB strips /api and forwards to service)
+# 2. Without prefix for local access (direct access to /v1/predict)
+app.include_router(api_router, prefix="/api")
+app.include_router(api_router)
 
 
 if __name__ == "__main__":
