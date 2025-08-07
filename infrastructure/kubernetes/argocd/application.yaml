@@ -49,11 +49,12 @@ spec:
   revisionHistoryLimit: 10
   
   # Resource exclusions/inclusions
-  ignoreDifferences:
-  - group: apps
-    kind: Deployment
-    jsonPointers:
-    - /spec/replicas  # Ignore replica count differences (for HPA)
+  # ignoreDifferences removed to allow ArgoCD to track Deployment changes
+  # -  ignoreDifferences:
+  #  - group: apps
+  #    kind: Deployment
+  #    jsonPointers:
+  #    - /spec/replicas  # Ignore replica count differences (for HPA)
     
 ---
 # Application Project for better organization
