@@ -17,6 +17,8 @@ spec:
   
   # Source repository
   source:
+    directory:
+      recurse: true # Recurse through all subdirectories in the repository
     repoURL: https://github.com/MLOpsGroup75/mlops.git
     targetRevision: main
     path: infrastructure/kubernetes
