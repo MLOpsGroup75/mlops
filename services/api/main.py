@@ -2,24 +2,28 @@ import asyncio
 import time
 import uuid
 from datetime import datetime
-from fastapi import FastAPI, HTTPException, Depends, Request, status, APIRouter
-from fastapi.responses import PlainTextResponse, JSONResponse
-from slowapi import Limiter
-from slowapi.util import get_remote_address
-from slowapi.errors import RateLimitExceeded
+
 import httpx
 import structlog
+from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request, status
+from fastapi.responses import JSONResponse, PlainTextResponse
+from slowapi import Limiter
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 
 from config.settings import settings
-from services.common.models import (
-    PredictionRequest, PredictionSuccess, ErrorResponse, 
-    HealthResponse, ReadinessResponse, InternalPredictionRequest,
-    InternalPredictionResponse
-)
-from services.common.logging_config import setup_logging, get_logger
-from services.common.middleware import LoggingMiddleware, MetricsMiddleware
+from services.common.logging_config import get_logger, setup_logging
 from services.common.metrics import get_api_metrics
-
+from services.common.middleware import LoggingMiddleware, MetricsMiddleware
+from services.common.models import (
+    ErrorResponse,
+    HealthResponse,
+    InternalPredictionRequest,
+    InternalPredictionResponse,
+    PredictionRequest,
+    PredictionSuccess,
+    ReadinessResponse,
+)
 
 # Initialize logging
 setup_logging("api-service")
@@ -34,7 +38,7 @@ app = FastAPI(
     description="API service for housing price prediction with monitoring and health checks",
     version="1.0.0",
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
 )
 
 # Create API router for endpoints that should be accessible via ALB without /api prefix
@@ -71,86 +75,82 @@ async def shutdown_event():
     logger.info("API service stopped", service="api")
 
 
-async def call_predict_service(prediction_request: InternalPredictionRequest) -> InternalPredictionResponse:
+async def call_predict_service(
+    prediction_request: InternalPredictionRequest,
+) -> InternalPredictionResponse:
     """Call the predict service with the prediction request"""
     try:
         url = f"{settings.predict_url}/predict"
-        
+
         start_time = time.time()
         response = await http_client.post(
             url,
             json=prediction_request.dict(),
-            headers={"Content-Type": "application/json"}
+            headers={"Content-Type": "application/json"},
         )
         duration = time.time() - start_time
-        
+
         if response.status_code == 200:
             result = response.json()
             get_api_metrics().record_prediction(duration, "success")
             return InternalPredictionResponse(**result)
         else:
             get_api_metrics().record_prediction(duration, "error")
-            error_detail = response.text if response.text else "Unknown error from predict service"
+            error_detail = (
+                response.text if response.text else "Unknown error from predict service"
+            )
             raise HTTPException(
                 status_code=response.status_code,
-                detail=f"Predict service error: {error_detail}"
+                detail=f"Predict service error: {error_detail}",
             )
-    
+
     except httpx.RequestError as e:
         get_api_metrics().record_prediction(0, "error")
-        logger.error("Failed to connect to predict service", error=str(e), service="api")
-        raise HTTPException(
-            status_code=503,
-            detail="Predict service unavailable"
+        logger.error(
+            "Failed to connect to predict service", error=str(e), service="api"
         )
+        raise HTTPException(status_code=503, detail="Predict service unavailable")
     except Exception as e:
         get_api_metrics().record_prediction(0, "error")
-        logger.error("Unexpected error calling predict service", error=str(e), service="api")
-        raise HTTPException(
-            status_code=500,
-            detail="Internal server error"
+        logger.error(
+            "Unexpected error calling predict service", error=str(e), service="api"
         )
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @api_router.post("/v1/predict", response_model=PredictionSuccess)
 @limiter.limit(f"{settings.rate_limit_requests}/{settings.rate_limit_window}seconds")
 async def predict_housing_price(
-    request: Request,
-    prediction_request: PredictionRequest
+    request: Request, prediction_request: PredictionRequest
 ) -> PredictionSuccess:
     """Predict housing price based on input features"""
-    
-    request_id = getattr(request.state, 'request_id', str(uuid.uuid4()))
-    
-    logger.info(
-        "Received prediction request",
-        request_id=request_id,
-        service="api"
-    )
-    
+
+    request_id = getattr(request.state, "request_id", str(uuid.uuid4()))
+
+    logger.info("Received prediction request", request_id=request_id, service="api")
+
     try:
         # Convert to internal format
         internal_request = InternalPredictionRequest.from_prediction_request(
-            prediction_request, 
-            request_id
+            prediction_request, request_id
         )
-        
+
         # Call predict service
         internal_response = await call_predict_service(internal_request)
-        
+
         # Convert back to external format
         response = internal_response.to_prediction_success()
-        
+
         logger.info(
             "Prediction completed successfully",
             request_id=request_id,
             housing_price=internal_response.housing_price,
             processing_time=internal_response.processing_time,
-            service="api"
+            service="api",
         )
-        
+
         return response
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -158,12 +158,9 @@ async def predict_housing_price(
             "Unexpected error during prediction",
             request_id=request_id,
             error=str(e),
-            service="api"
+            service="api",
         )
-        raise HTTPException(
-            status_code=500,
-            detail="Internal server error"
-        )
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.get("/metrics", response_class=PlainTextResponse)
@@ -176,9 +173,7 @@ async def get_metrics():
 async def health_check():
     """Health check endpoint"""
     return HealthResponse(
-        status="OK",
-        timestamp=datetime.utcnow().isoformat(),
-        service="api"
+        status="OK", timestamp=datetime.utcnow().isoformat(), service="api"
     )
 
 
@@ -186,7 +181,7 @@ async def health_check():
 async def readiness_check():
     """Readiness check endpoint for Kubernetes"""
     checks = {}
-    
+
     # Check predict service health
     predict_healthy = False
     try:
@@ -196,11 +191,12 @@ async def readiness_check():
         checks["predictService"] = "OK" if predict_healthy else "FAIL"
     except Exception as e:
         checks["predictService"] = f"FAIL: {str(e)}"
-    
+
     # Check database (SQLite log database)
     db_healthy = True
     try:
         import sqlite3
+
         conn = sqlite3.connect(settings.log_db_path)
         conn.execute("SELECT 1")
         conn.close()
@@ -208,15 +204,12 @@ async def readiness_check():
     except Exception as e:
         db_healthy = False
         checks["database"] = f"FAIL: {str(e)}"
-    
+
     overall_ready = predict_healthy and db_healthy
-    
+
     if not overall_ready:
-        raise HTTPException(
-            status_code=503,
-            detail="Service not ready"
-        )
-    
+        raise HTTPException(status_code=503, detail="Service not ready")
+
     return ReadinessResponse(ready=True, checks=checks)
 
 
@@ -226,17 +219,15 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
     """Handle rate limit exceeded"""
     get_api_metrics().record_rate_limit_exceeded()
     logger.warning(
-        "Rate limit exceeded",
-        client_ip=get_remote_address(request),
-        service="api"
+        "Rate limit exceeded", client_ip=get_remote_address(request), service="api"
     )
     return JSONResponse(
         status_code=429,
         content={
             "error": "Rate limit exceeded",
             "detail": "Rate limit exceeded. Please try again later.",
-            "retry_after": exc.retry_after if hasattr(exc, 'retry_after') else 60
-        }
+            "retry_after": exc.retry_after if hasattr(exc, "retry_after") else 60,
+        },
     )
 
 
@@ -249,6 +240,7 @@ app.include_router(api_router)
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(
         "services.api.main:app",
         host=settings.api_host,

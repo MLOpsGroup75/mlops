@@ -1,0 +1,41 @@
+[flake8]
+# Configuration for flake8 linting
+
+# Maximum line length (aligned with black)
+max-line-length = 88
+
+# Error codes to ignore
+extend-ignore = 
+    # E203: whitespace before ':' (conflicts with black)
+    E203,
+    # W503: line break before binary operator (conflicts with black)
+    W503,
+    # E501: line too long (handled by black)
+    E501
+
+# Directories to exclude from linting
+exclude = 
+    .git,
+    __pycache__,
+    .venv,
+    venv,
+    .env,
+    env,
+    build,
+    dist,
+    *.egg-info,
+    .pytest_cache,
+    .mypy_cache,
+    node_modules
+
+# Files to include
+filename = *.py
+
+# Show source code for each error
+show-source = True
+
+# Count the number of occurrences of each error/warning code
+count = True
+
+# Print total number of errors
+statistics = True

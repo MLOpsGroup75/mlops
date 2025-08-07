@@ -38,6 +38,30 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r services/api/requirements.txt
         pip install -r services/predict/requirements.txt
+        # Install linting tools
+        pip install flake8 black isort mypy
+        
+    - name: Run linters for API service
+      run: |
+        echo "🔍 Running linters for API service..."
+        
+        # Check code formatting with black
+        echo "📝 Checking code formatting..."
+        black --check --diff services/api/
+        
+        # Check import sorting with isort
+        echo "📦 Checking import sorting..."
+        isort --check-only --diff services/api/
+        
+        # Run flake8 for style and error checking (allow warnings)
+        echo "🔧 Running flake8..."
+        flake8 services/api/ --max-line-length=88 --extend-ignore=E203,W503,F401 --exit-zero
+        
+        # Run mypy for type checking (optional, allow failures)
+        echo "🔍 Running mypy type checking..."
+        mypy services/api/ --ignore-missing-imports || echo "⚠️ MyPy found issues but continuing..."
+        
+        echo "✅ Linting completed for API service"
         
     - name: Run tests
       run: |
@@ -76,6 +100,30 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r services/api/requirements.txt
         pip install -r services/predict/requirements.txt
+        # Install linting tools
+        pip install flake8 black isort mypy
+        
+    - name: Run linters for Predict service
+      run: |
+        echo "🔍 Running linters for Predict service..."
+        
+        # Check code formatting with black
+        echo "📝 Checking code formatting..."
+        black --check --diff services/predict/
+        
+        # Check import sorting with isort
+        echo "📦 Checking import sorting..."
+        isort --check-only --diff services/predict/
+        
+        # Run flake8 for style and error checking (allow warnings)
+        echo "🔧 Running flake8..."
+        flake8 services/predict/ --max-line-length=88 --extend-ignore=E203,W503,F401,F821 --exit-zero
+        
+        # Run mypy for type checking (optional, allow failures)
+        echo "🔍 Running mypy type checking..."
+        mypy services/predict/ --ignore-missing-imports || echo "⚠️ MyPy found issues but continuing..."
+        
+        echo "✅ Linting completed for Predict service"
         
     - name: Run tests
       run: |
