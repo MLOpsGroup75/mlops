@@ -121,7 +121,7 @@ class TestSettingsEnvironmentVariables:
             'LOG_LEVEL': 'DEBUG',
             'LOG_TO_FILE': 'false',
             'LOG_DB_PATH': '/custom/logs/app.db',
-            'LOG_HEALTH_ENDPOINTS': 'true',
+            'LOG_ALL_ENDPOINTS': 'true',
             'LOG_REQUEST_BODY': 'false',
             'MAX_BODY_LOG_SIZE': '5000'
         }

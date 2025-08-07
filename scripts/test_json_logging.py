@@ -145,7 +145,7 @@ def test_json_logging_configuration():
     print("  Environment Variables:")
     print("    LOG_REQUEST_BODY=true/false")
     print("    MAX_BODY_LOG_SIZE=<bytes>")
-    print("    LOG_HEALTH_ENDPOINTS=true/false")
+    print("    LOG_ALL_ENDPOINTSS=true/false")
     
     print("\n  Or in config/settings.py:")
     print("    log_request_body = True/False")
