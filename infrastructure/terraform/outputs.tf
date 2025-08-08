@@ -106,6 +106,27 @@ output "predict_service_url" {
   value       = "http://<ALB_URL>/predict"
 }
 
+# S3 Outputs
+output "s3_bucket_name" {
+  description = "Name of the S3 bucket for MLOps datasets"
+  value       = aws_s3_bucket.mlops_housing_datasets.bucket
+}
+
+output "s3_bucket_arn" {
+  description = "ARN of the S3 bucket for MLOps datasets"
+  value       = aws_s3_bucket.mlops_housing_datasets.arn
+}
+
+output "s3_bucket_regional_domain_name" {
+  description = "Regional domain name of the S3 bucket"
+  value       = aws_s3_bucket.mlops_housing_datasets.bucket_regional_domain_name
+}
+
+output "s3_access_role_arn" {
+  description = "ARN of the IAM role for S3 access from EKS"
+  value       = aws_iam_role.s3_access_role.arn
+}
+
 # Next Steps
 output "next_steps" {
   description = "Next steps after infrastructure deployment"
@@ -131,5 +152,14 @@ output "next_steps" {
 
 6. Check application status:
    kubectl get pods -n mlops-housing
+
+7. S3 Bucket Information:
+   Bucket Name: ${aws_s3_bucket.mlops_housing_datasets.bucket}
+   Bucket ARN: ${aws_s3_bucket.mlops_housing_datasets.arn}
+   
+   Upload datasets using:
+   aws s3 cp your-dataset.csv s3://${aws_s3_bucket.mlops_housing_datasets.bucket}/datasets/
+   
+   Access from pods using the service account: s3-access-sa in mlops-housing namespace
 EOF
 }

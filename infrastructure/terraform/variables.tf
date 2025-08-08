@@ -132,3 +132,16 @@ variable "enable_ssl" {
   type        = bool
   default     = false
 }
+
+# S3 Configuration
+variable "enable_s3_versioning" {
+  description = "Enable S3 bucket versioning for dataset storage"
+  type        = bool
+  default     = true
+}
+
+variable "s3_lifecycle_enabled" {
+  description = "Enable S3 lifecycle rules for cost optimization"
+  type        = bool
+  default     = true
+}
