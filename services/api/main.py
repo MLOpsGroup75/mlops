@@ -68,7 +68,6 @@ async def startup_event():
 @app.on_event("shutdown")
 async def shutdown_event():
     """Cleanup on shutdown"""
-    global http_client
     if http_client:
         await http_client.aclose()
     get_api_metrics().set_service_status(False)
