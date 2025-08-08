@@ -1,0 +1,13 @@
+{
+  "feature_names": [
+    "MedInc",
+    "HouseAge",
+    "AveRooms",
+    "AveBedrms",
+    "Population",
+    "AveOccup",
+    "Latitude",
+    "Longitude"
+  ],
+  "n_features": 8
+}
