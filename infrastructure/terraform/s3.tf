@@ -101,7 +101,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "mlops_housing_datasets" {
   }
 }
 
-# IAM Policy for S3 Access
+# IAM Policy for S3 Access (Datasets and Artifacts)
 data "aws_iam_policy_document" "s3_access_policy" {
   statement {
     effect = "Allow"
@@ -113,7 +113,23 @@ data "aws_iam_policy_document" "s3_access_policy" {
     ]
     resources = [
       aws_s3_bucket.mlops_housing_datasets.arn,
-      "${aws_s3_bucket.mlops_housing_datasets.arn}/*"
+      "${aws_s3_bucket.mlops_housing_datasets.arn}/*",
+      aws_s3_bucket.mlops_housing_artifacts.arn,
+      "${aws_s3_bucket.mlops_housing_artifacts.arn}/*"
+    ]
+  }
+
+  # Additional statement for model versioning and metadata operations
+  statement {
+    effect = "Allow"
+    actions = [
+      "s3:GetObjectVersion",
+      "s3:ListBucketVersions",
+      "s3:GetObjectVersionMetadata"
+    ]
+    resources = [
+      aws_s3_bucket.mlops_housing_artifacts.arn,
+      "${aws_s3_bucket.mlops_housing_artifacts.arn}/*"
     ]
   }
 }
@@ -162,6 +178,130 @@ resource "kubernetes_service_account" "s3_access" {
   }
 
   depends_on = [module.eks]
+}
+
+# S3 Bucket for MLOps Model Artifacts Storage
+resource "aws_s3_bucket" "mlops_housing_artifacts" {
+  bucket = "${local.name}-artifacts"
+
+  tags = merge(local.tags, {
+    Purpose = "MLOps model artifacts storage"
+    DataType = "housing-model-artifacts"
+  })
+}
+
+# S3 Bucket Versioning for Artifacts
+resource "aws_s3_bucket_versioning" "mlops_housing_artifacts" {
+  count  = var.enable_s3_versioning ? 1 : 0
+  bucket = aws_s3_bucket.mlops_housing_artifacts.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+# S3 Bucket Server-side Encryption for Artifacts
+resource "aws_s3_bucket_server_side_encryption_configuration" "mlops_housing_artifacts" {
+  bucket = aws_s3_bucket.mlops_housing_artifacts.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+    bucket_key_enabled = true
+  }
+}
+
+# S3 Bucket Public Access Block for Artifacts (Security Best Practice)
+resource "aws_s3_bucket_public_access_block" "mlops_housing_artifacts" {
+  bucket = aws_s3_bucket.mlops_housing_artifacts.id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+# S3 Bucket Lifecycle Configuration for Artifacts
+resource "aws_s3_bucket_lifecycle_configuration" "mlops_housing_artifacts" {
+  count  = var.s3_lifecycle_enabled ? 1 : 0
+  bucket = aws_s3_bucket.mlops_housing_artifacts.id
+
+  rule {
+    id     = "model_artifacts_lifecycle"
+    status = "Enabled"
+
+    filter {
+      prefix = "models/"
+    }
+
+    # Move to Infrequent Access after 90 days (models accessed less frequently)
+    transition {
+      days          = 90
+      storage_class = "STANDARD_IA"
+    }
+
+    # Move to Glacier after 365 days
+    transition {
+      days          = 365
+      storage_class = "GLACIER"
+    }
+
+    # Clean up incomplete multipart uploads after 7 days
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
+  }
+
+  # Rule for experiment artifacts (shorter lifecycle)
+  rule {
+    id     = "experiment_artifacts_lifecycle"
+    status = "Enabled"
+
+    filter {
+      prefix = "experiments/"
+    }
+
+    # Move to Infrequent Access after 30 days
+    transition {
+      days          = 30
+      storage_class = "STANDARD_IA"
+    }
+
+    # Move to Glacier after 180 days
+    transition {
+      days          = 180
+      storage_class = "GLACIER"
+    }
+
+    # Clean up incomplete multipart uploads after 7 days
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
+  }
+
+  # Rule for versioned objects cleanup
+  rule {
+    id     = "artifacts_version_cleanup"
+    status = "Enabled"
+
+    filter {
+      prefix = ""
+    }
+
+    noncurrent_version_transition {
+      noncurrent_days = 30
+      storage_class   = "STANDARD_IA"
+    }
+
+    noncurrent_version_transition {
+      noncurrent_days = 90
+      storage_class   = "GLACIER"
+    }
+
+    noncurrent_version_expiration {
+      noncurrent_days = 365  # Keep artifact versions for 1 year
+    }
+  }
 }
 
 # Kubernetes namespace for MLOps
