@@ -34,7 +34,7 @@ class TestSettingsDefaults:
         """Test rate limiting default settings"""
         settings = Settings()
 
-        assert settings.rate_limit_requests == 5
+        assert settings.rate_limit_requests == 150
         assert settings.rate_limit_window == 60
 
     def test_logging_defaults(self):
