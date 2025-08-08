@@ -91,12 +91,23 @@ services:
       - "3000:3000"
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_INSTALL_PLUGINS=
+      - GF_SERVER_USER_AGENT_IDENTIFIER=mlops-grafana
+      - GF_ANALYTICS_CHECK_FOR_UPDATES=false
+      - GF_ANALYTICS_REPORTING_ENABLED=false
+      - GF_LOG_LEVEL=info
     volumes:
       - grafana-storage:/var/lib/grafana
+      - ./monitoring/grafana.ini:/etc/grafana/grafana.ini
       - ./monitoring/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
+      - ./monitoring/grafana-dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
+      - ./monitoring/grafana-dashboard-requests.json:/etc/grafana/provisioning/dashboards/requests.json
     networks:
       - mlops-network
     restart: unless-stopped
+    depends_on:
+      - prometheus
 
 networks:
   mlops-network:

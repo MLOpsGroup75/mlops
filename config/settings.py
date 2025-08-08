@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     predict_url: str = "http://localhost:8001"
     
     # Rate Limiting
-    rate_limit_requests: int = 5
+    rate_limit_requests: int = 150
     rate_limit_window: int = 60  # seconds
     
     # Logging Settings
