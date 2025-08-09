@@ -49,29 +49,29 @@ class UnityCatalogModelRegistry:
     def _sanitize_model_name(self, name: str) -> str:
         """
         Sanitize model name to comply with Unity Catalog naming rules.
-        
+
         Unity Catalog model names must be non-empty UTF-8 strings and cannot contain
         forward slashes (/), periods (.), or colons (:).
-        
+
         Args:
             name: Original model name
-            
+
         Returns:
             Sanitized model name
         """
         # Replace invalid characters with underscores
         sanitized = name.replace("/", "_").replace(".", "_").replace(":", "_")
-        
+
         # Remove any duplicate underscores and strip
         while "__" in sanitized:
             sanitized = sanitized.replace("__", "_")
-        
+
         sanitized = sanitized.strip("_")
-        
+
         # Ensure name is not empty
         if not sanitized:
             sanitized = "model"
-            
+
         return sanitized
 
     def get_model_name(self, base_name: str) -> str:
@@ -86,7 +86,7 @@ class UnityCatalogModelRegistry:
         """
         # Sanitize the base name first
         sanitized_name = self._sanitize_model_name(base_name)
-        
+
         if self.is_unity_catalog:
             # Unity Catalog format: catalog.schema.model_name
             return f"{self.catalog_name}.{self.schema_name}.{sanitized_name}"
@@ -119,12 +119,14 @@ class UnityCatalogModelRegistry:
             if not is_valid:
                 logger.warning(f"⚠️ Model name validation failed: {validation_msg}")
                 logger.info(f"🔧 Sanitizing model name for Unity Catalog compatibility")
-            
+
             # Get proper model name format
             full_model_name = self.get_model_name(model_name)
-            
+
             if model_name != self._sanitize_model_name(model_name):
-                logger.info(f"Model name sanitized: '{model_name}' -> '{self._sanitize_model_name(model_name)}'")
+                logger.info(
+                    f"Model name sanitized: '{model_name}' -> '{self._sanitize_model_name(model_name)}'"
+                )
 
             logger.info(f"Attempting to register model: {full_model_name}")
 
@@ -163,7 +165,9 @@ class UnityCatalogModelRegistry:
                 logger.warning("⚠️ Invalid model name for Unity Catalog")
                 logger.info(f"💡 Original name: {model_name}")
                 logger.info(f"💡 Attempted name: {full_model_name}")
-                logger.info("💡 Model names cannot contain periods (.), forward slashes (/), or colons (:)")
+                logger.info(
+                    "💡 Model names cannot contain periods (.), forward slashes (/), or colons (:)"
+                )
                 logger.info("💡 Model artifacts are still available in MLflow run")
                 return "not_registered_invalid_name"
 
@@ -245,30 +249,33 @@ def register_model_with_unity_catalog(
 def validate_unity_catalog_model_name(model_name: str) -> Tuple[bool, str]:
     """
     Validate if a model name complies with Unity Catalog naming rules.
-    
+
     Args:
         model_name: Model name to validate
-        
+
     Returns:
         Tuple of (is_valid, error_message)
     """
     if not model_name:
         return False, "Model name cannot be empty"
-        
+
     if not isinstance(model_name, str):
         return False, "Model name must be a string"
-        
+
     # Check for invalid characters
     invalid_chars = ["/", ".", ":"]
     found_invalid = []
-    
+
     for char in invalid_chars:
         if char in model_name:
             found_invalid.append(char)
-            
+
     if found_invalid:
-        return False, f"Model name contains invalid characters: {', '.join(found_invalid)}. Unity Catalog model names cannot contain forward slashes (/), periods (.), or colons (:)"
-        
+        return (
+            False,
+            f"Model name contains invalid characters: {', '.join(found_invalid)}. Unity Catalog model names cannot contain forward slashes (/), periods (.), or colons (:)",
+        )
+
     return True, "Valid model name"
 
 

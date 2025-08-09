@@ -227,10 +227,14 @@ class DecisionTreeTrainer(BaseTrainer):
         for feature_name, importance in feature_importance_dict.items():
             mlflow_metrics[f"feature_importance_{feature_name}"] = importance
 
-        # Log to MLflow
-        self.log_to_mlflow(
+        # Log to MLflow and capture run ID
+        run_id = self.log_to_mlflow(
             mlflow_params, mlflow_metrics, plot_paths, self.model_name, X_train
         )
+
+        # Add run ID to results for model registration
+        results["run_id"] = run_id
+        results["model_uri"] = f"runs:/{run_id}/model"
 
         # Save model
         model_path = f"../../model/artifacts/{self.model_name}_model.pkl"
@@ -365,13 +369,17 @@ class DecisionTreeTrainer(BaseTrainer):
             for feature_name, importance in feature_importance_dict.items():
                 mlflow_metrics[f"feature_importance_{feature_name}"] = importance
 
-            self.log_to_mlflow(
+            run_id = self.log_to_mlflow(
                 mlflow_params,
                 mlflow_metrics,
                 {},
                 f"{self.model_name}_hyperparameter_tuning",
                 X_train,
             )
+
+            # Add run ID to tuning results
+            tuning_results["run_id"] = run_id
+            tuning_results["model_uri"] = f"runs:/{run_id}/model"
 
         logger.info(
             f"Hyperparameter tuning completed. Best CV score: {search.best_score_:.4f}"
@@ -471,9 +479,13 @@ class DecisionTreeTrainer(BaseTrainer):
             ].items():
                 mlflow_metrics[f"feature_importance_{feature_name}"] = importance
 
-            self.log_to_mlflow(
+            run_id = self.log_to_mlflow(
                 mlflow_params, mlflow_metrics, plot_paths, self.model_name, X_train
             )
+
+            # Add run ID to final results
+            final_results["run_id"] = run_id
+            final_results["model_uri"] = f"runs:/{run_id}/model"
 
             # Save final model
             model_path = f"../../model/artifacts/{self.model_name}_tuned.pkl"

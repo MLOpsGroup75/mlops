@@ -324,10 +324,13 @@ class MLTrainingPipeline:
                 best_run_id = None
                 for result in self.training_results:
                     if result.get("model_type") == self.best_model_info["model_type"]:
-                        # In a real implementation, you'd store run_id in training results
-                        # For now, we'll use a placeholder approach
-                        best_run_id = "latest_run"  # This would be the actual run ID
-                        break
+                        # Get the actual run ID from training results
+                        best_run_id = result.get("run_id")
+                        if best_run_id:
+                            logger.info(
+                                f"Found run ID for best model ({self.best_model_info['model_type']}): {best_run_id}"
+                            )
+                            break
 
                 if best_run_id:
                     model_uri = f"runs:/{best_run_id}/model"
@@ -354,6 +357,11 @@ class MLTrainingPipeline:
                         return version or "unity_catalog_failed"
                 else:
                     logger.error("Could not find run ID for best model")
+                    logger.error("Available training results:")
+                    for i, result in enumerate(self.training_results):
+                        logger.error(
+                            f"  Result {i}: model_type={result.get('model_type')}, run_id={result.get('run_id', 'MISSING')}"
+                        )
                     return "run_id_not_found"
 
             else:
