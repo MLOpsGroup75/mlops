@@ -5,7 +5,7 @@ Unity Catalog utilities for Databricks MLflow model registration.
 import os
 import logging
 import mlflow
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +32,12 @@ class UnityCatalogModelRegistry:
             tracking_uri = mlflow.get_tracking_uri()
             if "databricks" in tracking_uri:
                 logger.info("Unity Catalog mode detected (Databricks workspace)")
+                # Set registry URI to Unity Catalog
+                try:
+                    mlflow.set_registry_uri("databricks-uc")
+                    logger.info("✅ MLflow registry URI set to Unity Catalog")
+                except Exception as e:
+                    logger.warning(f"Could not set Unity Catalog registry URI: {e}")
                 return True
             else:
                 logger.info("Non-Unity Catalog mode (local MLflow)")
@@ -39,6 +45,34 @@ class UnityCatalogModelRegistry:
         except Exception as e:
             logger.warning(f"Could not determine Unity Catalog status: {e}")
             return False
+
+    def _sanitize_model_name(self, name: str) -> str:
+        """
+        Sanitize model name to comply with Unity Catalog naming rules.
+        
+        Unity Catalog model names must be non-empty UTF-8 strings and cannot contain
+        forward slashes (/), periods (.), or colons (:).
+        
+        Args:
+            name: Original model name
+            
+        Returns:
+            Sanitized model name
+        """
+        # Replace invalid characters with underscores
+        sanitized = name.replace("/", "_").replace(".", "_").replace(":", "_")
+        
+        # Remove any duplicate underscores and strip
+        while "__" in sanitized:
+            sanitized = sanitized.replace("__", "_")
+        
+        sanitized = sanitized.strip("_")
+        
+        # Ensure name is not empty
+        if not sanitized:
+            sanitized = "model"
+            
+        return sanitized
 
     def get_model_name(self, base_name: str) -> str:
         """
@@ -50,12 +84,15 @@ class UnityCatalogModelRegistry:
         Returns:
             Properly formatted model name
         """
+        # Sanitize the base name first
+        sanitized_name = self._sanitize_model_name(base_name)
+        
         if self.is_unity_catalog:
             # Unity Catalog format: catalog.schema.model_name
-            return f"{self.catalog_name}.{self.schema_name}.{base_name}"
+            return f"{self.catalog_name}.{self.schema_name}.{sanitized_name}"
         else:
-            # Legacy format: just the model name
-            return base_name
+            # Legacy format: just the sanitized model name
+            return sanitized_name
 
     def register_model_safely(
         self,
@@ -77,8 +114,17 @@ class UnityCatalogModelRegistry:
             Model version if successful, None if failed
         """
         try:
+            # Validate original model name and log if sanitization is needed
+            is_valid, validation_msg = validate_unity_catalog_model_name(model_name)
+            if not is_valid:
+                logger.warning(f"⚠️ Model name validation failed: {validation_msg}")
+                logger.info(f"🔧 Sanitizing model name for Unity Catalog compatibility")
+            
             # Get proper model name format
             full_model_name = self.get_model_name(model_name)
+            
+            if model_name != self._sanitize_model_name(model_name):
+                logger.info(f"Model name sanitized: '{model_name}' -> '{self._sanitize_model_name(model_name)}'")
 
             logger.info(f"Attempting to register model: {full_model_name}")
 
@@ -113,7 +159,15 @@ class UnityCatalogModelRegistry:
         except Exception as e:
             error_msg = str(e)
 
-            if "legacy workspace model registry is disabled" in error_msg:
+            if "INVALID_PARAMETER_VALUE" in error_msg and "Invalid name" in error_msg:
+                logger.warning("⚠️ Invalid model name for Unity Catalog")
+                logger.info(f"💡 Original name: {model_name}")
+                logger.info(f"💡 Attempted name: {full_model_name}")
+                logger.info("💡 Model names cannot contain periods (.), forward slashes (/), or colons (:)")
+                logger.info("💡 Model artifacts are still available in MLflow run")
+                return "not_registered_invalid_name"
+
+            elif "legacy workspace model registry is disabled" in error_msg:
                 logger.warning(
                     "⚠️ Legacy model registry disabled - model logged but not registered"
                 )
@@ -186,6 +240,36 @@ def register_model_with_unity_catalog(
     """
     registry = UnityCatalogModelRegistry(catalog, schema)
     return registry.register_model_safely(model_uri, model_name, description, tags)
+
+
+def validate_unity_catalog_model_name(model_name: str) -> Tuple[bool, str]:
+    """
+    Validate if a model name complies with Unity Catalog naming rules.
+    
+    Args:
+        model_name: Model name to validate
+        
+    Returns:
+        Tuple of (is_valid, error_message)
+    """
+    if not model_name:
+        return False, "Model name cannot be empty"
+        
+    if not isinstance(model_name, str):
+        return False, "Model name must be a string"
+        
+    # Check for invalid characters
+    invalid_chars = ["/", ".", ":"]
+    found_invalid = []
+    
+    for char in invalid_chars:
+        if char in model_name:
+            found_invalid.append(char)
+            
+    if found_invalid:
+        return False, f"Model name contains invalid characters: {', '.join(found_invalid)}. Unity Catalog model names cannot contain forward slashes (/), periods (.), or colons (:)"
+        
+    return True, "Valid model name"
 
 
 def check_unity_catalog_permissions(
