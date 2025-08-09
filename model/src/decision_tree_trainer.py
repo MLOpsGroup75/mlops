@@ -378,8 +378,8 @@ class DecisionTreeTrainer(BaseTrainer):
             )
 
             # Add run ID to tuning results
-            tuning_results["run_id"] = run_id
-            tuning_results["model_uri"] = f"runs:/{run_id}/model"
+            results["run_id"] = run_id
+            results["model_uri"] = f"runs:/{run_id}/model"
 
         logger.info(
             f"Hyperparameter tuning completed. Best CV score: {search.best_score_:.4f}"
