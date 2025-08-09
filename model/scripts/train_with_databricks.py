@@ -119,9 +119,14 @@ def run_training_pipeline(use_databricks=True, quick_mode=False):
                 'weights': {'performance': 0.8, 'simplicity': 0.2, 'robustness': 0.0}
             },
             'model_registry': {
-                'register_best_model': False,  # Disabled for Unity Catalog compatibility
+                'register_best_model': True,  # Disabled in quick mode
                 'model_name': 'california_housing_quick',
-                'promote_to_production': False
+                'promote_to_production': False,
+                'unity_catalog': {
+                    'enabled': True,  # Enable Unity Catalog support
+                    'catalog': 'workspace',
+                    'schema': 'default'
+                }
             },
             'output': {
                 'save_results': True,
@@ -157,9 +162,14 @@ def run_training_pipeline(use_databricks=True, quick_mode=False):
                 'weights': {'performance': 0.7, 'simplicity': 0.2, 'robustness': 0.1}
             },
             'model_registry': {
-                'register_best_model': False,  # Disabled for Unity Catalog compatibility
+                'register_best_model': True,
                 'model_name': 'california_housing_predictor',
-                'promote_to_production': False
+                'promote_to_production': False,
+                'unity_catalog': {
+                    'enabled': True,  # Enable Unity Catalog support
+                    'catalog': 'workspace',
+                    'schema': 'default'
+                },
             },
             'output': {
                 'save_results': True,
