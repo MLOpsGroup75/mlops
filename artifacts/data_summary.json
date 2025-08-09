@@ -1,0 +1,30 @@
+{
+  "feature_names": [
+    "MedInc",
+    "HouseAge",
+    "AveRooms",
+    "AveBedrms",
+    "Population",
+    "AveOccup",
+    "Latitude",
+    "Longitude",
+    "rooms_per_household",
+    "bedrooms_ratio",
+    "population_per_household",
+    "income_cat"
+  ],
+  "train_shape": [
+    16512,
+    12
+  ],
+  "test_shape": [
+    4128,
+    12
+  ],
+  "target_stats": {
+    "train_mean": 2.0672938947432167,
+    "train_std": 1.1541547582733362,
+    "test_mean": 2.073615266472868,
+    "test_std": 1.1532873049932644
+  }
+}
