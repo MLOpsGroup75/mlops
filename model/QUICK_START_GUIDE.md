@@ -2,8 +2,10 @@
 
 ## Option 1: With Databricks Token (Recommended)
 ```bash
+cd model/scripts
+
 # Replace YOUR_TOKEN_HERE with your actual token
-./model/scripts/run_training.sh YOUR_TOKEN_HERE
+./run_training.sh YOUR_TOKEN_HERE
 ```
 
 ## Option 2: Using Python Script Directly
@@ -13,16 +15,16 @@ export DATABRICKS_HOST="https://dbc-87ef0a7b-f01d.cloud.databricks.com"
 export DATABRICKS_TOKEN="YOUR_TOKEN_HERE"
 
 # Run training
-python model/scripts/train_with_databricks.py
+python train_with_databricks.py
 ```
 
 ## Option 3: Local MLflow Only
 ```bash
 # Run without Databricks (uses local MLflow)
-./model/scripts/run_training.sh local
+./run_training.sh local
 ```
 
-## Generated Files:
+## Generated Files (in repo ROOT):
 - **`training_results/`** - Complete training results and reports
 - **`plots/`** - Performance visualizations 
 - **`model/artifacts/`** - Saved model files
@@ -38,6 +40,7 @@ python model/scripts/train_with_databricks.py
 
 ### 1. MLflow UI (Local)
 ```bash
+# From repo ROOT path
 mlflow ui --backend-store-uri file:./mlruns
 # Open: http://localhost:5000
 ```
