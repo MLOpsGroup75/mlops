@@ -3,8 +3,14 @@ name: CI/CD Pipeline with Docker
 on:
   push:
     branches: [ main, develop ]
+    paths:
+      - 'services/**'
+      - '.github/workflows/service-pipeline.yml'
   pull_request:
     branches: [ main ]
+    paths:
+      - 'services/**'
+      - '.github/workflows/service-pipeline.yml'
 
 env:
   REGISTRY: docker.io

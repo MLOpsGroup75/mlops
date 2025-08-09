@@ -1,0 +1,142 @@
+name: MLOps Main Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths-ignore:
+      - 'services/**'
+      - 'data/**'
+      - 'model/**'
+      - 'train_*.py'
+  pull_request:
+    branches: [ main ]
+    paths-ignore:
+      - 'services/**'
+      - 'data/**'
+      - 'model/**'
+      - 'train_*.py'
+
+env:
+  PYTHON_VERSION: '3.9'
+
+jobs:
+  pipeline-info:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Pipeline Information
+      run: |
+        echo "🚀 MLOPS PIPELINE SYSTEM 🚀"
+        echo "==========================="
+        echo ""
+        echo "This repository uses path-based pipeline triggering:"
+        echo ""
+        echo "📁 services/**  → triggers CI/CD Pipeline with Docker (service-pipeline.yml)"
+        echo "   - API service build and deployment"
+        echo "   - Predict service build and deployment" 
+        echo "   - Integration tests with health checks"
+        echo "   - Docker image builds and push to Docker Hub"
+        echo "   - Security scanning with Trivy"
+        echo "   - EKS deployment via ArgoCD"
+        echo ""
+        echo "📊 data/**      → triggers Data Pipeline"
+        echo "   - Data validation and quality checks"
+        echo "   - Data preprocessing"
+        echo "   - Feature engineering"
+        echo "   - Data versioning with DVC"
+        echo ""
+        echo "🤖 model/**     → triggers Model Pipeline"
+        echo "   - Model training and validation"
+        echo "   - Hyperparameter optimization"
+        echo "   - Model registration"
+        echo "   - Performance evaluation"
+        echo ""
+        echo "==========================="
+        echo "Current trigger: Infrastructure/Documentation changes"
+        echo "✅ Pipeline information displayed"
+
+  infrastructure-checks:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Check infrastructure files
+      run: |
+        echo "🏗️ Checking infrastructure and configuration files..."
+        
+        if [ -d "infrastructure/" ]; then
+          echo "- Infrastructure directory found"
+          echo "- Terraform files: $(find infrastructure/ -name '*.tf' | wc -l)"
+          echo "- Kubernetes manifests: $(find infrastructure/ -name '*.yaml' -o -name '*.yml' | wc -l)"
+        fi
+        
+        if [ -f "docker-compose.yml" ]; then
+          echo "- Docker Compose configuration found"
+        fi
+        
+        if [ -f "requirements.txt" ]; then
+          echo "- Python requirements file found"
+        fi
+        
+        echo "✅ Infrastructure check completed"
+
+  documentation-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Check documentation
+      run: |
+        echo "📚 Checking documentation files..."
+        
+        if [ -f "README.md" ]; then
+          echo "- Main README found"
+        fi
+        
+        echo "- Markdown files: $(find . -name '*.md' | wc -l)"
+        
+        # Check for documentation in subdirectories
+        for dir in services data model infrastructure monitoring; do
+          if [ -f "$dir/README.md" ]; then
+            echo "- $dir/README.md found"
+          fi
+        done
+        
+        echo "✅ Documentation check completed"
+
+  general-linting:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install linting tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 black yamllint
+    
+    - name: Lint YAML files
+      run: |
+        echo "🔍 Linting YAML files..."
+        find . -name '*.yml' -o -name '*.yaml' | head -10 | xargs yamllint -d relaxed || true
+        echo "✅ YAML linting completed"
+    
+    - name: Check Python files in root
+      run: |
+        echo "🐍 Checking Python files in root directory..."
+        if ls *.py 1> /dev/null 2>&1; then
+          flake8 *.py --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics || true
+          black --check *.py || true
+        else
+          echo "No Python files in root directory"
+        fi
+        echo "✅ Root Python files check completed"

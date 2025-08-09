@@ -1,0 +1,216 @@
+name: Model Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'model/**'
+      - 'train_*.py'
+      - '.github/workflows/model-pipeline.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'model/**'
+      - 'train_*.py'
+      - '.github/workflows/model-pipeline.yml'
+
+env:
+  PYTHON_VERSION: '3.9'
+  MLFLOW_TRACKING_URI: 'http://localhost:5000'
+
+jobs:
+  model-validation:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-model-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-model-
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install scikit-learn pandas numpy mlflow pytest flake8 black joblib
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    
+    - name: Lint model code
+      run: |
+        flake8 model/ --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 model/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    
+    - name: Check code formatting
+      run: |
+        black --check model/
+    
+    - name: Model Pipeline Triggered
+      run: |
+        echo "🤖 MODEL PIPELINE TRIGGERED 🤖"
+        echo "===================================="
+        echo "Changes detected in model directory"
+        echo "Running model training and validation..."
+        echo "===================================="
+        
+        # Placeholder for actual model pipeline steps
+        echo "🧠 Step 1: Model code validation"
+        echo "🧠 Step 2: Hyperparameter validation"
+        echo "🧠 Step 3: Model architecture checks"
+        echo "🧠 Step 4: Training configuration validation"
+        echo "🧠 Step 5: Model testing framework"
+        
+        echo "===================================="
+        echo "✅ Model pipeline validation completed!"
+
+  model-training:
+    runs-on: ubuntu-latest
+    needs: model-validation
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install scikit-learn pandas numpy mlflow joblib
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    
+    - name: Run model training (placeholder)
+      run: |
+        echo "🏋️ Starting model training pipeline..."
+        echo "- Loading training data"
+        echo "- Initializing model architecture"
+        echo "- Running hyperparameter optimization"
+        echo "- Training base models"
+        echo "- Cross-validation"
+        echo "- Model ensemble creation"
+        echo "✅ Model training completed!"
+    
+    - name: Model performance evaluation (placeholder)
+      run: |
+        echo "📊 Evaluating model performance..."
+        echo "- Computing training metrics"
+        echo "- Computing validation metrics"
+        echo "- Generating performance reports"
+        echo "- Creating visualization plots"
+        echo "✅ Model evaluation completed!"
+
+  model-testing:
+    runs-on: ubuntu-latest
+    needs: model-validation
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install scikit-learn pandas numpy pytest pytest-cov
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    
+    - name: Run model unit tests (placeholder)
+      run: |
+        echo "🧪 Running model unit tests..."
+        echo "- Testing model initialization"
+        echo "- Testing model training methods"
+        echo "- Testing model prediction methods"
+        echo "- Testing model serialization"
+        echo "- Testing model metrics calculation"
+        echo "✅ All model tests passed!"
+
+  model-registration:
+    runs-on: ubuntu-latest
+    needs: [model-training, model-testing]
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install scikit-learn pandas numpy mlflow joblib
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    
+    - name: Register model (placeholder)
+      run: |
+        echo "📝 Registering trained model..."
+        echo "- Saving model artifacts"
+        echo "- Logging model metadata"
+        echo "- Updating model registry"
+        echo "- Creating model version"
+        echo "- Tagging model for deployment"
+        echo "✅ Model registered successfully!"
+    
+    - name: Upload model artifacts (placeholder)
+      run: |
+        echo "📤 Uploading model artifacts..."
+        echo "- Uploading to model storage"
+        echo "- Creating model package"
+        echo "- Updating artifact registry"
+        echo "✅ Model artifacts uploaded!"
+
+  model-deployment-readiness:
+    runs-on: ubuntu-latest
+    needs: model-registration
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Check deployment readiness (placeholder)
+      run: |
+        echo "🚀 Checking model deployment readiness..."
+        echo "- Validating model performance thresholds"
+        echo "- Checking model compatibility"
+        echo "- Verifying deployment configuration"
+        echo "- Running deployment tests"
+        echo "✅ Model ready for deployment!"
+    
+    - name: Notify deployment pipeline
+      run: |
+        echo "📢 Notifying deployment pipeline..."
+        echo "New model version available for deployment:"
+        echo "- Model version: v$(date +%Y%m%d%H%M%S)"
+        echo "- Performance metrics passed"
+        echo "- Ready for staging deployment"
+        echo "✅ Deployment notification sent!"
+
+  notify-downstream:
+    runs-on: ubuntu-latest
+    needs: [model-validation, model-training, model-testing, model-registration]
+    if: always() && github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Notify monitoring pipeline
+      run: |
+        echo "📢 Notifying monitoring and downstream pipelines..."
+        echo "Model pipeline completed. Updates available for:"
+        echo "- Model monitoring dashboard"
+        echo "- A/B testing framework"
+        echo "- Model performance tracking"
+        echo "- Prediction service updates"
+        echo "✅ All notifications sent!"

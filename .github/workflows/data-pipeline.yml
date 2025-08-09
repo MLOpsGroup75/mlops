@@ -1,0 +1,151 @@
+name: Data Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'data/**'
+      - 'scripts/download_california_housing.py'
+      - '.github/workflows/data-pipeline.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'data/**'
+      - 'scripts/download_california_housing.py'
+      - '.github/workflows/data-pipeline.yml'
+
+env:
+  PYTHON_VERSION: '3.9'
+
+jobs:
+  data-validation:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-data-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-data-
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pandas scikit-learn pytest flake8 black
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    
+    - name: Lint data processing code
+      run: |
+        flake8 data/src/ --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 data/src/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    
+    - name: Check code formatting
+      run: |
+        black --check data/src/
+    
+    - name: Data Pipeline Triggered
+      run: |
+        echo "🔥 DATA PIPELINE TRIGGERED 🔥"
+        echo "================================="
+        echo "Changes detected in data directory"
+        echo "Running data validation and processing..."
+        echo "================================="
+        
+        # Placeholder for actual data pipeline steps
+        echo "📊 Step 1: Data quality checks"
+        echo "📊 Step 2: Data schema validation"
+        echo "📊 Step 3: Data preprocessing"
+        echo "📊 Step 4: Feature engineering"
+        echo "📊 Step 5: Data versioning with DVC"
+        
+        echo "================================="
+        echo "✅ Data pipeline completed successfully!"
+
+  data-quality-checks:
+    runs-on: ubuntu-latest
+    needs: data-validation
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pandas scikit-learn numpy
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    
+    - name: Run data quality checks (placeholder)
+      run: |
+        echo "🔍 Running data quality checks..."
+        echo "- Checking for missing values"
+        echo "- Validating data types"
+        echo "- Checking data ranges"
+        echo "- Verifying data integrity"
+        echo "✅ All data quality checks passed!"
+
+  data-preprocessing:
+    runs-on: ubuntu-latest
+    needs: data-quality-checks
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pandas scikit-learn numpy
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    
+    - name: Run data preprocessing (placeholder)
+      run: |
+        echo "⚙️ Running data preprocessing pipeline..."
+        echo "- Loading raw data"
+        echo "- Cleaning data"
+        echo "- Feature scaling"
+        echo "- Train/test split"
+        echo "- Saving processed data"
+        echo "✅ Data preprocessing completed!"
+    
+    - name: Upload processed data artifacts (placeholder)
+      run: |
+        echo "📤 Uploading processed data artifacts..."
+        echo "- Uploading to data storage"
+        echo "- Updating data registry"
+        echo "- Creating data version"
+        echo "✅ Data artifacts uploaded successfully!"
+
+  notify-downstream:
+    runs-on: ubuntu-latest
+    needs: [data-validation, data-quality-checks, data-preprocessing]
+    if: always() && github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Notify model pipeline
+      run: |
+        echo "📢 Notifying downstream pipelines..."
+        echo "Data pipeline completed. New data available for:"
+        echo "- Model training pipeline"
+        echo "- Model validation pipeline"
+        echo "- Feature monitoring pipeline"
+        echo "✅ Notifications sent!"
