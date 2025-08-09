@@ -17,6 +17,8 @@ archive/
 
 # ML runs
 mlruns/
+quick_results/
+training_results/
 
 # Model artifacts
 model/artifacts/
