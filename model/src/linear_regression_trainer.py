@@ -188,7 +188,7 @@ class LinearRegressionTrainer(BaseTrainer):
         self.log_to_mlflow(mlflow_params, mlflow_metrics, plot_paths, self.model_name, X_train)
         
         # Save model
-        model_path = f"model/artifacts/{self.model_name}.pkl"
+        model_path = f"../../model/artifacts/{self.model_name}.pkl"
         self.save_model(model_path)
         
         logger.info(f"Training completed. Test R² score: {test_metrics['r2_score']:.4f}")
@@ -384,7 +384,7 @@ class LinearRegressionTrainer(BaseTrainer):
                              f"{self.model_name}_lasso" if self.model_type == "lasso" else self.model_name, X_train)
             
             # Save final model
-            model_path = f"model/artifacts/{self.model_name}_tuned.pkl"
+            model_path = f"../../model/artifacts/{self.model_name}_tuned.pkl"
             self.save_model(model_path)
             
             logger.info(f"Training with hyperparameter tuning completed.")

@@ -118,7 +118,7 @@ class ModelComparator:
         
         return comparison_df
     
-    def create_comparison_visualizations(self, save_dir: str = "plots/model_comparison") -> Dict[str, str]:
+    def create_comparison_visualizations(self, save_dir: str = "../../plots/model_comparison") -> Dict[str, str]:
         """
         Create visualizations for model comparison.
         

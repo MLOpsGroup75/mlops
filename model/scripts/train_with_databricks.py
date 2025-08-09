@@ -127,7 +127,7 @@ def run_training_pipeline(use_databricks=True, quick_mode=False):
                 'save_results': True,
                 'generate_report': True,
                 'create_visualizations': True,
-                'results_dir': 'quick_results'
+                'results_dir': '../../quick_results'
             }
         }
     else:
@@ -165,7 +165,7 @@ def run_training_pipeline(use_databricks=True, quick_mode=False):
                 'save_results': True,
                 'generate_report': True,
                 'create_visualizations': True,
-                'results_dir': 'training_results'
+                'results_dir': '../../training_results'
             }
         }
     

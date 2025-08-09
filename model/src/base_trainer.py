@@ -211,7 +211,7 @@ class BaseTrainer(ABC):
         Returns:
             Dictionary of plot file paths
         """
-        plots_dir = Path("plots")
+        plots_dir = Path("../../plots")
         plots_dir.mkdir(exist_ok=True)
         
         plot_paths = {}
