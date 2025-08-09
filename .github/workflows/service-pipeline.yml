@@ -1,4 +1,4 @@
-name: CI/CD Pipeline with Docker
+name: Service Pipeline
 
 on:
   push:
