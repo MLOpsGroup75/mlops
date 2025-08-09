@@ -342,7 +342,7 @@ class BaseTrainer(ABC):
                 
                 mlflow.sklearn.log_model(
                     sk_model=self.model,
-                    artifact_path="model",
+                    name="model",
                     input_example=input_example
                 )
             
