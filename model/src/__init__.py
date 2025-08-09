@@ -13,8 +13,8 @@ from .hyperparameter_tuning import HyperparameterTuner
 
 __all__ = [
     "BaseTrainer",
-    "LinearRegressionTrainer", 
+    "LinearRegressionTrainer",
     "DecisionTreeTrainer",
     "ModelRegistry",
-    "HyperparameterTuner"
+    "HyperparameterTuner",
 ]

@@ -1,6 +1,7 @@
 """
 Unit tests for API service
 """
+
 import json
 from unittest.mock import AsyncMock, Mock, patch
 
@@ -119,7 +120,7 @@ class TestAPIPredictionEndpoint:
         """Test prediction with missing required fields"""
         incomplete_request = {
             "longitude": -122.23,
-            "latitude": 37.88
+            "latitude": 37.88,
             # Missing other required fields
         }
 

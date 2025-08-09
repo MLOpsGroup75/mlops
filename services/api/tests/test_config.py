@@ -1,6 +1,7 @@
 """
 Unit tests for configuration settings
 """
+
 import os
 import tempfile
 from unittest.mock import patch

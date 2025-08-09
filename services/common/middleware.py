@@ -30,22 +30,26 @@ class LoggingMiddleware(BaseHTTPMiddleware):
 
     def _is_json_content(self, content_type: str) -> bool:
         """Check if content type is JSON"""
-        return content_type and ('application/json' in content_type.lower())
+        return content_type and ("application/json" in content_type.lower())
 
     def _safe_parse_json(self, content: bytes) -> Optional[Dict[str, Any]]:
         """Safely parse JSON content with size limits"""
         try:
             if len(content) > settings.max_body_log_size:
-                return {"_truncated": f"Body too large ({len(content)} bytes, max {settings.max_body_log_size})"}
+                return {
+                    "_truncated": f"Body too large ({len(content)} bytes, max {settings.max_body_log_size})"
+                }
 
-            text = content.decode('utf-8')
+            text = content.decode("utf-8")
             return json.loads(text)
         except (json.JSONDecodeError, UnicodeDecodeError) as e:
             return {"_parse_error": f"Failed to parse JSON: {str(e)}"}
         except Exception as e:
             return {"_error": f"Unexpected error: {str(e)}"}
 
-    async def _get_request_body(self, request: Request) -> Tuple[Optional[Dict[str, Any]], bytes]:
+    async def _get_request_body(
+        self, request: Request
+    ) -> Tuple[Optional[Dict[str, Any]], bytes]:
         """Read and parse request body, return both parsed data and raw bytes"""
         if not settings.log_request_body:
             return None, b""
@@ -60,7 +64,9 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             # Check content type
             content_type = request.headers.get("content-type", "")
             if not self._is_json_content(content_type):
-                return {"_non_json": f"Content-Type: {content_type}, Size: {len(body_bytes)} bytes"}, body_bytes
+                return {
+                    "_non_json": f"Content-Type: {content_type}, Size: {len(body_bytes)} bytes"
+                }, body_bytes
 
             # Parse JSON
             parsed_data = self._safe_parse_json(body_bytes)
@@ -69,7 +75,9 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         except Exception as e:
             return {"_error": f"Failed to read request body: {str(e)}"}, b""
 
-    async def _capture_response_body(self, response: Response) -> Tuple[Optional[Dict[str, Any]], Response]:
+    async def _capture_response_body(
+        self, response: Response
+    ) -> Tuple[Optional[Dict[str, Any]], Response]:
         """Capture and parse response body, return both parsed data and updated response"""
         if not settings.log_request_body:
             return None, response
@@ -98,12 +106,12 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                     generate(),
                     status_code=response.status_code,
                     headers=response.headers,
-                    media_type=response.media_type
+                    media_type=response.media_type,
                 )
                 return parsed_data, new_response
 
             # For regular responses, try to get the body
-            elif hasattr(response, 'body') and response.body:
+            elif hasattr(response, "body") and response.body:
                 parsed_data = self._safe_parse_json(response.body)
                 return parsed_data, response
 
@@ -130,8 +138,10 @@ class LoggingMiddleware(BaseHTTPMiddleware):
 
             # Replace the request's receive function to make body available again
             if body_bytes:
+
                 async def receive():
                     return {"type": "http.request", "body": body_bytes}
+
                 request._receive = receive
         elif request.method in ["POST", "PUT", "PATCH"]:
             # Even if not logging, we need to handle the case where body might be consumed
@@ -139,8 +149,10 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             try:
                 body_bytes = await request.body()
                 if body_bytes:
+
                     async def receive():
                         return {"type": "http.request", "body": body_bytes}
+
                     request._receive = receive
             except Exception:
                 # If we can't read the body, let it continue normally
@@ -155,7 +167,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 url=str(request.url),
                 headers=dict(request.headers),
                 body=request_body_data,
-                service=self.service_name
+                service=self.service_name,
             )
 
         # Process request
@@ -173,7 +185,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                     error=str(e),
                     error_type=type(e).__name__,
                     duration=round(process_time, 4),
-                    service=self.service_name
+                    service=self.service_name,
                 )
 
             # Re-raise the exception to let FastAPI handle it
@@ -195,7 +207,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 headers=dict(response.headers),
                 body=response_body_data,
                 duration=round(process_time, 4),
-                service=self.service_name
+                service=self.service_name,
             )
 
         # Add custom headers
@@ -225,7 +237,7 @@ class MetricsMiddleware(BaseHTTPMiddleware):
                 method=request.method,
                 endpoint=request.url.path,
                 status_code=response.status_code,
-                duration=process_time
+                duration=process_time,
             )
 
         return response

@@ -8,35 +8,39 @@ class Settings(BaseSettings):
     api_host: str = "0.0.0.0"
     api_port: int = 8000
     api_debug: bool = False
-    
+
     # Predict Service Settings
     predict_host: str = "0.0.0.0"
     predict_port: int = 8001
     predict_url: str = "http://localhost:8001"
-    
+
     # Rate Limiting
     rate_limit_requests: int = 150
     rate_limit_window: int = 60  # seconds
-    
+
     # Logging Settings
     log_level: str = "INFO"
     log_to_file: bool = True
     log_db_path: str = "logs/app_logs.db"
-    log_all_endpoints: bool = False  # Enable logging for /health, /readiness, /metrics endpoints
-    log_request_body: bool = True  # Enable logging of request/response bodies in JSON format
+    log_all_endpoints: bool = (
+        False  # Enable logging for /health, /readiness, /metrics endpoints
+    )
+    log_request_body: bool = (
+        True  # Enable logging of request/response bodies in JSON format
+    )
     max_body_log_size: int = 10000  # Maximum body size to log (in bytes)
-    
+
     # Database Settings
     database_url: str = "sqlite:///./logs/app_logs.db"
-    
+
     # Model Settings
     model_path: str = "model/artifacts/housing_model.pkl"
     model_accuracy: Optional[float] = 0.85
-    
+
     # Service Settings
     service_name: str = "mlops-housing-api"
     service_version: str = "1.0.0"
-    
+
     class Config:
         env_file = ".env"
         case_sensitive = False

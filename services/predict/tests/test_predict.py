@@ -1,6 +1,7 @@
 """
 Unit tests for prediction service
 """
+
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest

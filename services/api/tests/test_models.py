@@ -1,6 +1,7 @@
 """
 Unit tests for common models
 """
+
 import pytest
 from pydantic import ValidationError
 
