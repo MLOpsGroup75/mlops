@@ -55,7 +55,9 @@ Both services communicate via HTTP and include comprehensive logging, metrics co
    - Prometheus: http://localhost:9090
    - Grafana: http://localhost:3000 (admin/admin)
 
-### Using Local Python
+3. Refer to `model/QUICK_START_GUIDE.md` for training quick start guide.
+
+### Using Local Python (Basic)
 
 1. **Install dependencies:**
    ```bash
@@ -75,11 +77,6 @@ Both services communicate via HTTP and include comprehensive logging, metrics co
 ## Configuration
 
 Configuration is managed through environment variables or `.env` file:
-
-```bash
-# Copy example configuration
-cp .env.example .env
-```
 
 Key configuration options:
 - `RATE_LIMIT_REQUESTS`: Requests per minute (default: 5)
@@ -295,16 +292,13 @@ readinessProbe:
 For production deployment, set these environment variables:
 - `API_DEBUG=false`
 - `LOG_LEVEL=WARNING`
-- `RATE_LIMIT_REQUESTS=100`
+- `RATE_LIMIT_REQUESTS=150`
 - `PREDICT_URL=http://predict-service:8001`
 
 ## Future Enhancements
 
 The project structure supports future additions:
 
-- **Real ML Models**: Replace dummy model in `services/predict/main.py`
-- **Data Pipeline**: Add training/inference pipelines in `pipeline/`
-- **Model Versioning**: Implement model registry and versioning
 - **A/B Testing**: Add model comparison and traffic splitting
 - **Advanced Monitoring**: Add drift detection and model performance tracking
 
@@ -325,7 +319,7 @@ docker-compose logs api
 docker-compose logs predict
 
 # Local development
-tail -f logs/app_logs.db  # View log database
+Observe contents of log database, `logs/app_logs.db`.
 ```
 
 ### Health Checks
@@ -336,7 +330,3 @@ curl http://localhost:8000/health
 curl http://localhost:8001/health
 curl http://localhost:8000/readiness
 ```
-
-## License
-
-This project is licensed under the MIT License.

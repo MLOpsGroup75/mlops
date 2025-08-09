@@ -15,6 +15,12 @@ __pycache__/
 # Archive folder
 archive/
 
+# ML runs
+mlruns/
+
+# Model artifacts
+model/artifacts/
+
 # C extensions
 *.so
 
