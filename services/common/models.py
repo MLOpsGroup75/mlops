@@ -134,3 +134,45 @@ class InternalPredictionResponse(BaseModel):
         return PredictionSuccess(
             data=PredictionData(housingPrice=self.housing_price, accuracy=self.accuracy)
         )
+
+
+# Inference models
+class InferenceRequest(BaseModel):
+    """Request model for inference"""
+    
+    MedInc: float = Field(..., description="Median income in the area")
+    HouseAge: float = Field(..., description="Median age of housing in the area")
+    AveRooms: float = Field(..., description="Average number of rooms")
+    AveBedrms: float = Field(..., description="Average number of bedrooms")
+    Population: float = Field(..., description="Population in the area")
+    AveOccup: float = Field(..., description="Average occupancy")
+    Latitude: float = Field(..., description="Latitude coordinate")
+    Longitude: float = Field(..., description="Longitude coordinate")
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "MedInc": -0.3261960037692928,
+                "HouseAge": 0.3484902466663322,
+                "AveRooms": -0.1749164614622689,
+                "AveBedrms": -0.2083654336540427,
+                "Population": 0.7682762831665109,
+                "AveOccup": 0.0513760919421774,
+                "Latitude": -1.3728111990669665,
+                "Longitude": 1.2725865624715638
+            }
+        }
+
+
+class InferenceData(BaseModel):
+    """Inference result data"""
+    
+    predictions: list = Field(..., description="List of predictions")
+    request_id: Optional[str] = Field(None, description="Request ID for tracking")
+
+
+class InferenceResponse(BaseModel):
+    """Successful inference response"""
+    
+    data: InferenceData
+    processing_time: Optional[float] = Field(None, description="Processing time in seconds")

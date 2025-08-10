@@ -15,7 +15,8 @@ class LoggingMiddleware(BaseHTTPMiddleware):
     """Middleware to log all incoming and outgoing requests/responses"""
 
     # Define endpoints that should be included in logging
-    LOG_ENDPOINTS = {"/api/v1/predict", "/v1/predict", "/predict/v1/predict"}
+    LOG_ENDPOINTS = {"/api/v1/predict", "/v1/predict", "/predict/v1/predict",
+                     "/api/v1/infer", "/v1/infer"}
 
     def __init__(self, app, service_name: str = "api"):
         super().__init__(app)

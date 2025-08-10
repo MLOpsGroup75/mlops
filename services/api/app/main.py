@@ -23,6 +23,9 @@ from services.common.models import (
     PredictionRequest,
     PredictionSuccess,
     ReadinessResponse,
+    InferenceRequest,
+    InferenceResponse,
+    InferenceData,
 )
 
 # Initialize logging
@@ -117,6 +120,79 @@ async def call_predict_service(
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
+async def call_databricks_endpoint(
+    inference_request: InferenceRequest,
+) -> dict:
+    """Call the Databricks endpoint with the inference request"""
+    try:
+        if not settings.databricks_token:
+            raise HTTPException(
+                status_code=500, 
+                detail="Databricks token not configured"
+            )
+
+        # Prepare data in the format expected by Databricks
+        data = {
+            "dataframe_split": {
+                "columns": [
+                    "MedInc", "HouseAge", "AveRooms", "AveBedrms",
+                    "Population", "AveOccup", "Latitude", "Longitude"
+                ],
+                "data": [
+                    [
+                        inference_request.MedInc,
+                        inference_request.HouseAge,
+                        inference_request.AveRooms,
+                        inference_request.AveBedrms,
+                        inference_request.Population,
+                        inference_request.AveOccup,
+                        inference_request.Latitude,
+                        inference_request.Longitude
+                    ]
+                ]
+            }
+        }
+
+        start_time = time.time()
+        response = await http_client.post(
+            settings.databricks_endpoint_url,
+            json=data,
+            headers={
+                "Authorization": f"Bearer {settings.databricks_token}",
+                "Content-Type": "application/json"
+            },
+            timeout=30.0
+        )
+        duration = time.time() - start_time
+
+        if response.status_code == 200:
+            result = response.json()
+            get_api_metrics().record_prediction(duration, "success")
+            return result
+        else:
+            get_api_metrics().record_prediction(duration, "error")
+            error_detail = (
+                response.text if response.text else "Unknown error from Databricks"
+            )
+            raise HTTPException(
+                status_code=response.status_code,
+                detail=f"Databricks error: {error_detail}",
+            )
+
+    except httpx.RequestError as e:
+        get_api_metrics().record_prediction(0, "error")
+        logger.error(
+            "Failed to connect to Databricks endpoint", error=str(e), service="api"
+        )
+        raise HTTPException(status_code=503, detail="Databricks endpoint unavailable")
+    except Exception as e:
+        get_api_metrics().record_prediction(0, "error")
+        logger.error(
+            "Unexpected error calling Databricks endpoint", error=str(e), service="api"
+        )
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+
 @api_router.post("/v1/predict", response_model=PredictionSuccess)
 @limiter.limit(f"{settings.rate_limit_requests}/{settings.rate_limit_window}seconds")
 async def predict_housing_price(
@@ -155,6 +231,57 @@ async def predict_housing_price(
     except Exception as e:
         logger.error(
             "Unexpected error during prediction",
+            request_id=request_id,
+            error=str(e),
+            service="api",
+        )
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+
+@api_router.post("/v1/infer", response_model=InferenceResponse)
+@limiter.limit(f"{settings.rate_limit_requests}/{settings.rate_limit_window}seconds")
+async def infer_housing_price(
+    request: Request, inference_request: InferenceRequest
+) -> InferenceResponse:
+    """Infer housing price using Databricks endpoint"""
+
+    request_id = getattr(request.state, "request_id", str(uuid.uuid4()))
+
+    logger.info("Received inference request", request_id=request_id, service="api")
+
+    try:
+        # Call Databricks endpoint
+        start_time = time.time()
+        databricks_response = await call_databricks_endpoint(inference_request)
+        processing_time = time.time() - start_time
+
+        # Extract predictions from response
+        predictions = databricks_response.get("predictions", [])
+        
+        # Create response
+        response = InferenceResponse(
+            data=InferenceData(
+                predictions=predictions,
+                request_id=request_id
+            ),
+            processing_time=processing_time
+        )
+
+        logger.info(
+            "Inference completed successfully",
+            request_id=request_id,
+            predictions_count=len(predictions),
+            processing_time=processing_time,
+            service="api",
+        )
+
+        return response
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(
+            "Unexpected error during inference",
             request_id=request_id,
             error=str(e),
             service="api",

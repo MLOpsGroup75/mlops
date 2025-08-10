@@ -37,6 +37,10 @@ class Settings(BaseSettings):
     model_path: str = "model/artifacts/housing_model.pkl"
     model_accuracy: Optional[float] = 0.85
 
+    # Databricks Settings
+    databricks_endpoint_url: str = "https://dbc-87ef0a7b-f01d.cloud.databricks.com/serving-endpoints/mlops/invocations"
+    databricks_token: Optional[str] = None
+
     # Service Settings
     service_name: str = "mlops-housing-api"
     service_version: str = "1.0.0"
@@ -44,6 +48,15 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = False
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # Load Databricks params from environment variable
+        if os.environ.get("DATABRICKS_ENDPOINT_URL") != "":
+            self.databricks_endpoint_url = os.environ.get("DATABRICKS_ENDPOINT_URL")
+
+        if not self.databricks_token:
+            self.databricks_token = os.environ.get("DATABRICKS_TOKEN")
 
 
 settings = Settings()

@@ -16,6 +16,8 @@ services:
       - RATE_LIMIT_REQUESTS=5
       - RATE_LIMIT_WINDOW=60
       - SERVICE_NAME=api
+      - DATABRICKS_TOKEN=${DATABRICKS_TOKEN}
+      - DATABRICKS_ENDPOINT_URL=${DATABRICKS_ENDPOINT_URL}
     volumes:
       - ./logs:/app/logs
       - ./config:/app/config

@@ -60,6 +60,17 @@ spec:
           value: "api"
         - name: ENVIRONMENT
           value: "production"
+        # Databricks Configuration
+        - name: DATABRICKS_ENDPOINT_URL
+          valueFrom:
+            configMapKeyRef:
+              name: databricks-config
+              key: databricks-endpoint-url
+        - name: DATABRICKS_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: databricks-secret
+              key: databricks-token
         
         # Health checks
         livenessProbe:
