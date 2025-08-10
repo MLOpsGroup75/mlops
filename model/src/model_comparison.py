@@ -12,6 +12,7 @@ import os
 from pathlib import Path
 import matplotlib.pyplot as plt
 import seaborn as sns
+import mlflow.sklearn
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
 from .model_registry import ModelRegistry

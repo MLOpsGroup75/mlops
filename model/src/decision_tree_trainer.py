@@ -5,6 +5,7 @@ Decision tree trainer with hyperparameter tuning and MLflow integration.
 import pandas as pd
 import numpy as np
 from typing import Dict, Any, Tuple
+import mlflow.sklearn
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV

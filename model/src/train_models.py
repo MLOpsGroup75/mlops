@@ -22,6 +22,7 @@ from model.src.model_registry import ModelRegistry
 from model.src.hyperparameter_tuning import HyperparameterTuner
 
 # Import model classes for advanced tuning
+import mlflow.sklearn
 from sklearn.linear_model import Ridge, Lasso, ElasticNet
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor

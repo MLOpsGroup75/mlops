@@ -6,6 +6,7 @@ Script to download California Housing dataset and save it to data/raw folder.
 import os
 import pandas as pd
 import numpy as np
+import mlflow.sklearn
 from sklearn.datasets import fetch_california_housing
 import json
 from pathlib import Path

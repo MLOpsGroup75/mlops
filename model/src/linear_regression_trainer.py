@@ -5,6 +5,7 @@ Linear regression trainer with hyperparameter tuning and MLflow integration.
 import pandas as pd
 import numpy as np
 from typing import Dict, Any, Tuple
+import mlflow.sklearn
 from sklearn.linear_model import LinearRegression, Ridge, Lasso, ElasticNet
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from sklearn.pipeline import Pipeline
