@@ -74,7 +74,37 @@ Variable Value: mlops-housing-dev
 
 ## 🔑 AWS IAM Setup
 
-### 1. Create IAM User for GitHub Actions
+### 1. Deploy Infrastructure with Terraform
+The IAM user and policies are now managed by Terraform for better consistency and security.
+
+```bash
+# Navigate to terraform directory
+cd infrastructure/terraform
+
+# Plan the changes
+terraform plan
+
+# Apply the changes
+terraform apply
+```
+
+### 2. Create Access Keys (After Terraform Deployment)
+Use the provided script to create access keys:
+
+```bash
+# Run the setup script
+./scripts/setup_github_actions_iam.sh
+```
+
+This script will:
+- Verify the IAM user exists
+- Create new access keys
+- Display the credentials to add to GitHub Secrets
+- Test the S3 access
+
+### 3. Manual IAM Setup (Alternative)
+If you prefer to create the IAM user manually:
+
 ```bash
 # Create IAM user
 aws iam create-user --user-name github-actions-mlops
@@ -83,40 +113,7 @@ aws iam create-user --user-name github-actions-mlops
 aws iam create-access-key --user-name github-actions-mlops
 ```
 
-### 2. Create IAM Policy
-Create a policy with these permissions:
-
-```json
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "eks:DescribeCluster",
-                "eks:ListClusters",
-                "eks:UpdateKubeconfig"
-            ],
-            "Resource": "*"
-        },
-        {
-            "Effect": "Allow",
-            "Action": [
-                "sts:GetCallerIdentity"
-            ],
-            "Resource": "*"
-        }
-    ]
-}
-```
-
-### 3. Attach Policy to User
-```bash
-# Attach the policy to the user
-aws iam attach-user-policy \
-  --user-name github-actions-mlops \
-  --policy-arn arn:aws:iam::YOUR-ACCOUNT-ID:policy/GitHubActionsMLOpsPolicy
-```
+**Note**: The manual approach requires you to also create and attach the IAM policy manually. The Terraform approach is recommended.
 
 ## 📂 Repository File Updates
 
@@ -226,6 +223,12 @@ aws sts get-caller-identity
 - Verify `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` are set
 - Check IAM user has necessary permissions
 - Ensure no trailing spaces in secret values
+
+**❌ "AccessDenied" or "Forbidden" S3 errors**
+- Verify IAM user has S3 permissions for the specific bucket
+- Check if the S3 bucket exists and is accessible
+- Ensure the IAM policy includes `s3:ListBucket`, `s3:GetObject`, `s3:PutObject` permissions
+- Run the setup script: `./scripts/setup_github_actions_iam.sh`
 
 **❌ "repository does not exist" ArgoCD error**
 - Update `argocd/application.yaml` with correct repository URL

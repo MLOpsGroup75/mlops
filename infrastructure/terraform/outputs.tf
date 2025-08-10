@@ -144,6 +144,17 @@ output "s3_access_role_arn" {
   value       = aws_iam_role.s3_access_role.arn
 }
 
+# GitHub Actions IAM User Output
+output "github_actions_user_arn" {
+  description = "ARN of the GitHub Actions IAM user"
+  value       = aws_iam_user.github_actions_mlops.arn
+}
+
+output "github_actions_policy_arn" {
+  description = "ARN of the GitHub Actions IAM policy"
+  value       = aws_iam_policy.github_actions_mlops.arn
+}
+
 # Next Steps
 output "next_steps" {
   description = "Next steps after infrastructure deployment"

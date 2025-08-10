@@ -315,3 +315,66 @@ resource "aws_iam_role_policy" "eks_admin" {
     ]
   })
 }
+
+# GitHub Actions IAM User for MLOps
+resource "aws_iam_user" "github_actions_mlops" {
+  name = "github-actions-mlops"
+  tags = local.tags
+}
+
+# IAM Policy for GitHub Actions with S3 and EKS permissions
+resource "aws_iam_policy" "github_actions_mlops" {
+  name = "${local.name}-GitHubActionsMLOpsPolicy"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "eks:DescribeCluster",
+          "eks:ListClusters",
+          "eks:UpdateKubeconfig"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "sts:GetCallerIdentity"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:ListBucket",
+          "s3:GetBucketLocation"
+        ]
+        Resource = [
+          "arn:aws:s3:::mlops-housing-dev-datasets",
+          "arn:aws:s3:::mlops-housing-dev-datasets/*"
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:DeleteObject",
+          "s3:ListMultipartUploadParts",
+          "s3:AbortMultipartUpload"
+        ]
+        Resource = "arn:aws:s3:::mlops-housing-dev-datasets/*"
+      }
+    ]
+  })
+
+  tags = local.tags
+}
+
+# Attach policy to GitHub Actions user
+resource "aws_iam_user_policy_attachment" "github_actions_mlops" {
+  user       = aws_iam_user.github_actions_mlops.name
+  policy_arn = aws_iam_policy.github_actions_mlops.arn
+}
