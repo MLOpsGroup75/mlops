@@ -45,9 +45,10 @@ jobs:
 
     - name: Setup DVC
       run: |
-        dvc config core.remote s3remote
-        dvc config core.remote.s3remote.url s3://mlops-housing-dev-datasets
-        dvc config core.remote.s3remote.region us-east-1
+        dvc remote add -d s3remote s3://mlops-housing-dev-datasets
+        # dvc config core.remote s3remote
+        # dvc config core.remote.s3remote.url s3://mlops-housing-dev-datasets
+        # dvc config core.remote.s3remote.region us-east-1
 
     - name: Configure AWS credentials
       run: |
