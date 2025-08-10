@@ -57,6 +57,8 @@ jobs:
         
         # Configure additional remote settings
         dvc remote modify s3remote region ap-south-1
+        dvc remote modify s3remote access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
+        dvc remote modify s3remote secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
     - name: Configure AWS credentials
       run: |
