@@ -36,7 +36,7 @@ jobs:
     - name: Install DVC
       run: |
         python -m pip install --upgrade pip
-        pip install dvc[s3] pandas scikit-learn numpy
+        pip install dvc[s3] pandas scikit-learn numpy mlflow
 
     - name: Configure Git for DVC
       run: |
