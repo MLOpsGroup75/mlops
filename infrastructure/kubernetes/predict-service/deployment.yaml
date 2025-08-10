@@ -51,7 +51,7 @@ spec:
         - name: LOG_DB_PATH
           value: "/app/logs/predict_logs.db"
         - name: MODEL_PATH
-          value: "/app/model/artifacts/housing_model.pkl"
+          value: "/app/model/artifacts/housing_model.joblib"
         - name: MODEL_ACCURACY
           value: "0.85"
         - name: SERVICE_NAME

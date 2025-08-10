@@ -59,7 +59,7 @@ class TestSettingsDefaults:
         """Test model default settings"""
         settings = Settings()
 
-        assert settings.model_path == "model/artifacts/housing_model.pkl"
+        assert settings.model_path == "model/artifacts/housing_model.joblib"
         assert settings.model_accuracy == 0.85
 
     def test_service_defaults(self):
@@ -133,12 +133,12 @@ class TestSettingsEnvironmentVariables:
 
     def test_model_settings_from_env(self):
         """Test model settings from environment variables"""
-        env_vars = {"MODEL_PATH": "/custom/model/model.pkl", "MODEL_ACCURACY": "0.92"}
+        env_vars = {"MODEL_PATH": "/custom/model/model.joblib", "MODEL_ACCURACY": "0.92"}
 
         with patch.dict(os.environ, env_vars, clear=False):
             settings = Settings()
 
-            assert settings.model_path == "/custom/model/model.pkl"
+            assert settings.model_path == "/custom/model/model.joblib"
             assert settings.model_accuracy == 0.92
 
     def test_service_settings_from_env(self):
@@ -255,10 +255,10 @@ class TestSettingsFilePaths:
     def test_model_path_variations(self):
         """Test different model path configurations"""
         test_paths = [
-            "models/housing.pkl",
-            "/opt/models/housing_model.pkl",
+            "models/housing.joblib",
+            "/opt/models/housing_model.joblib",
             "./models/trained_model.joblib",
-            "../shared/models/model.pkl",
+            "../shared/models/model.joblib",
         ]
 
         for path in test_paths:

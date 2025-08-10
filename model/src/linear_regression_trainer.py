@@ -199,7 +199,7 @@ class LinearRegressionTrainer(BaseTrainer):
         results["model_uri"] = f"runs:/{run_id}/model"
 
         # Save model
-        model_path = f"../../model/artifacts/{self.model_name}.pkl"
+        model_path = f"../../model/artifacts/{self.model_name}.joblib"
         self.save_model(model_path)
 
         logger.info(
@@ -450,7 +450,7 @@ class LinearRegressionTrainer(BaseTrainer):
             final_results["model_uri"] = f"runs:/{run_id}/model"
 
             # Save final model
-            model_path = f"../../model/artifacts/{self.model_name}_tuned.pkl"
+            model_path = f"../../model/artifacts/{self.model_name}_tuned.joblib"
             self.save_model(model_path)
 
             logger.info(f"Training with hyperparameter tuning completed.")

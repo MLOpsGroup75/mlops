@@ -49,7 +49,7 @@ services:
       - LOG_LEVEL=INFO
       - LOG_TO_FILE=true
       - LOG_DB_PATH=/app/logs/predict_logs.db
-      - MODEL_PATH=/app/model/artifacts/housing_model.pkl
+      - MODEL_PATH=/app/model/artifacts/housing_model.joblib
       - MODEL_ACCURACY=0.85
       - SERVICE_NAME=predict
     volumes:
