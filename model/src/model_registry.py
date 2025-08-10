@@ -10,7 +10,8 @@ from typing import Dict, Any, List, Optional, Tuple
 from mlflow.tracking import MlflowClient
 from mlflow.entities import ViewType
 import logging
-import pickle
+import cloudpickle
+import joblib
 import os
 from pathlib import Path
 

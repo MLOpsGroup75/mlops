@@ -3,7 +3,8 @@ Base trainer class for machine learning models with MLflow integration.
 """
 
 import os
-import pickle
+import cloudpickle
+import joblib
 import pandas as pd
 import numpy as np
 import mlflow
@@ -431,7 +432,9 @@ class BaseTrainer(ABC):
         os.makedirs(os.path.dirname(model_path), exist_ok=True)
 
         # Save model
-        joblib.dump(self.model, model_path)
+        ## joblib.dump(self.model, model_path)
+        with open(model_path, "wb") as f:
+            cloudpickle.dump(self.model, f)
 
         logger.info(f"Model saved to {model_path}")
 
