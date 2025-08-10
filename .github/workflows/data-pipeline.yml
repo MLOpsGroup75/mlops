@@ -204,3 +204,21 @@ jobs:
         echo "✅ .dvc files committed to git"
         echo "✅ Data summary generated"
         echo "======================================"
+
+  trigger-model-pipeline:
+    runs-on: ubuntu-latest
+    needs: data-pipeline
+    if: success() && github.ref == 'refs/heads/main'
+
+    steps:
+    - name: Trigger Model Pipeline
+      run: |
+        echo "Data pipeline completed successfully!"
+        echo "Triggering model pipeline..."
+        echo "This will start the model training and validation process"
+        echo "using the newly processed and versioned datasets."
+
+        # Note: The actual trigger happens via workflow_run in the model pipeline
+
+        echo "✅ Model pipeline trigger initiated!"
+        echo "Check the Actions tab to monitor model pipeline progress."
