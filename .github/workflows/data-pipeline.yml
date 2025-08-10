@@ -60,13 +60,19 @@ jobs:
         dvc remote modify s3remote access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
         dvc remote modify s3remote secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ap-south-1
+        dvc config remote.s3remote.access_key_id | grep AKIA | wc -l
 
+    - name: Configure AWS credentials
+      run: |
+        aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws configure set region ap-south-1
+        aws configure set output json
+        
+        # Verify configuration (this will show masked values in logs, but that's expected)
+        aws configure list
+
+        grep AKIA ~/.aws/credentials | wc -l
     - name: Pull existing data from DVC
       run: |
         echo "📥 Pulling existing data from DVC remote..."
