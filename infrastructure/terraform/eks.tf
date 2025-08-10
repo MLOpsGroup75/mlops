@@ -1,7 +1,7 @@
 # EKS Cluster
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "~> 19.21"
+  version = "~> 20.0"
 
   cluster_name    = local.name
   cluster_version = local.cluster_version
@@ -9,6 +9,18 @@ module "eks" {
   vpc_id                         = module.vpc.vpc_id
   subnet_ids                     = module.vpc.private_subnets
   cluster_endpoint_public_access = true
+
+  # Disable extended support (cluster creator admin permissions)
+  enable_cluster_creator_admin_permissions = false
+
+  # Disable additional admin permissions
+  create_cluster_primary_security_group_tags = false
+  create_node_security_group                 = false
+
+  # Disable extended support features
+  enable_irsa                    = false
+  create_cloudwatch_log_group    = false
+  cluster_enabled_log_types      = []
 
   # EKS Managed Node Groups
   eks_managed_node_groups = {
@@ -26,7 +38,7 @@ module "eks" {
 
       # Security group for additional access
       vpc_security_group_ids = [aws_security_group.additional.id]
-      
+
       # IAM role policies for EBS CSI driver
       iam_role_additional_policies = {
         AmazonEBSCSIDriverPolicy = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
