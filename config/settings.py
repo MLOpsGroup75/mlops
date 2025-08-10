@@ -34,7 +34,7 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///./logs/app_logs.db"
 
     # Model Settings
-    model_path: str = "model/artifacts/housing_model.joblib"
+    model_path: str = "model/artifacts/housing_model.pkl"
     model_accuracy: Optional[float] = 0.85
 
     # Databricks Settings

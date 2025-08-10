@@ -3,7 +3,7 @@ Base trainer class for machine learning models with MLflow integration.
 """
 
 import os
-import joblib
+import pickle
 import pandas as pd
 import numpy as np
 import mlflow
@@ -400,7 +400,10 @@ class BaseTrainer(ABC):
                         input_example = None
 
                 mlflow.sklearn.log_model(
-                    sk_model=self.model, name="model", input_example=input_example
+                    sk_model=self.model,
+                    name="model",
+                    input_example=input_example,
+                    serialization_format="cloudpickle",
                 )
 
             # Log additional metadata

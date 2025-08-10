@@ -180,7 +180,7 @@ output "next_steps" {
    Model Artifacts Bucket:
    - Name: ${aws_s3_bucket.mlops_housing_artifacts.bucket}
    - ARN: ${aws_s3_bucket.mlops_housing_artifacts.arn}
-   - Upload models: aws s3 cp model.joblib s3://${aws_s3_bucket.mlops_housing_artifacts.bucket}/models/
+   - Upload models: aws s3 cp model.pkl s3://${aws_s3_bucket.mlops_housing_artifacts.bucket}/models/
    - Upload experiments: aws s3 cp experiment-results.json s3://${aws_s3_bucket.mlops_housing_artifacts.bucket}/experiments/
    
    Access from pods using the service account: s3-access-sa in mlops-housing namespace

@@ -238,7 +238,7 @@ class DecisionTreeTrainer(BaseTrainer):
         results["model_uri"] = f"runs:/{run_id}/model"
 
         # Save model
-        model_path = f"../../model/artifacts/{self.model_name}_model.joblib"
+        model_path = f"../../model/artifacts/{self.model_name}_model.pkl"
         self.save_model(model_path)
 
         logger.info(
@@ -489,7 +489,7 @@ class DecisionTreeTrainer(BaseTrainer):
             final_results["model_uri"] = f"runs:/{run_id}/model"
 
             # Save final model
-            model_path = f"../../model/artifacts/{self.model_name}_tuned.joblib"
+            model_path = f"../../model/artifacts/{self.model_name}_tuned.pkl"
             self.save_model(model_path)
 
             logger.info(f"Training with hyperparameter tuning completed.")
