@@ -127,7 +127,7 @@ async def call_databricks_endpoint(
     try:
         if not settings.databricks_token:
             raise HTTPException(
-                status_code=500, 
+                status_code=500,
                 detail="Databricks token not configured"
             )
 
@@ -257,7 +257,7 @@ async def infer_housing_price(
 
         # Extract predictions from response
         predictions = databricks_response.get("predictions", [])
-        
+
         # Create response
         response = InferenceResponse(
             data=InferenceData(
