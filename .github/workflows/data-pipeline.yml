@@ -56,7 +56,7 @@ jobs:
         fi
         
         # Configure additional remote settings
-        dvc config core.remote.s3remote.region us-east-1
+        dvc remote modify s3remote region us-east-1
 
     - name: Configure AWS credentials
       run: |
