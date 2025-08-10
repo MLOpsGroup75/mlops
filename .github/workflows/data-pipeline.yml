@@ -45,10 +45,18 @@ jobs:
 
     - name: Setup DVC
       run: |
-        dvc remote add -d s3remote s3://mlops-housing-dev-datasets
-        # dvc config core.remote s3remote
-        # dvc config core.remote.s3remote.url s3://mlops-housing-dev-datasets
-        # dvc config core.remote.s3remote.region us-east-1
+        # Check if remote exists, if not add it, if it does exist update it
+        if dvc remote list | grep -q "s3remote"; then
+          echo "Remote 's3remote' already exists, updating configuration..."
+          dvc remote modify s3remote url s3://mlops-housing-dev-datasets
+          dvc remote default s3remote
+        else
+          echo "Adding new remote 's3remote'..."
+          dvc remote add -d s3remote s3://mlops-housing-dev-datasets
+        fi
+        
+        # Configure additional remote settings
+        dvc config core.remote.s3remote.region us-east-1
 
     - name: Configure AWS credentials
       run: |
