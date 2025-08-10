@@ -1,30 +1,37 @@
 {
-  "feature_names": [
-    "MedInc",
-    "HouseAge",
-    "AveRooms",
-    "AveBedrms",
-    "Population",
-    "AveOccup",
-    "Latitude",
-    "Longitude",
-    "rooms_per_household",
-    "bedrooms_ratio",
-    "population_per_household",
-    "income_cat"
-  ],
-  "train_shape": [
-    16512,
-    12
-  ],
-  "test_shape": [
-    4128,
-    12
-  ],
-  "target_stats": {
-    "train_mean": 2.0672938947432167,
-    "train_std": 1.1541547582733362,
-    "test_mean": 2.073615266472868,
-    "test_std": 1.1532873049932644
+  "data/processed/X_train.csv": {
+    "rows": 16512,
+    "columns": 8,
+    "size_mb": 2.51
+  },
+  "data/processed/y_train.csv": {
+    "rows": 16512,
+    "columns": 1,
+    "size_mb": 0.09
+  },
+  "data/processed/y_test.csv": {
+    "rows": 4128,
+    "columns": 1,
+    "size_mb": 0.02
+  },
+  "data/processed/X_test.csv": {
+    "rows": 4128,
+    "columns": 8,
+    "size_mb": 0.63
+  },
+  "data/raw/california_housing.csv": {
+    "rows": 20640,
+    "columns": 9,
+    "size_mb": 1.81
+  },
+  "data/raw/archive/california_housing_target.csv": {
+    "rows": 20640,
+    "columns": 1,
+    "size_mb": 0.12
+  },
+  "data/raw/archive/california_housing_features.csv": {
+    "rows": 20640,
+    "columns": 8,
+    "size_mb": 1.69
   }
 }

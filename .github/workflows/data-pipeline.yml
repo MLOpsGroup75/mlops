@@ -13,135 +13,162 @@ on:
       - 'data/**'
       - 'scripts/download_california_housing.py'
       - '.github/workflows/data-pipeline.yml'
+  workflow_dispatch: # Allow manual triggering
 
 env:
   PYTHON_VERSION: '3.9'
 
 jobs:
-  data-validation:
+  data-pipeline:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@v4
-    
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # Full history for DVC
+
     - name: Set up Python ${{ env.PYTHON_VERSION }}
       uses: actions/setup-python@v4
       with:
         python-version: ${{ env.PYTHON_VERSION }}
-    
-    - name: Cache pip dependencies
-      uses: actions/cache@v3
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-data-${{ hashFiles('**/requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-data-
-          ${{ runner.os }}-pip-
-    
-    - name: Install dependencies
+
+    - name: Install DVC
       run: |
         python -m pip install --upgrade pip
-        pip install pandas scikit-learn pytest flake8
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    
-    - name: Lint data processing code
-      run: |
-        flake8 data/src/ --count --select=E9,F63,F7,F82 --show-source --statistics
-        flake8 data/src/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    
-    - name: Data Pipeline Triggered
-      run: |
-        echo "🔥 DATA PIPELINE TRIGGERED 🔥"
-        echo "================================="
-        echo "Changes detected in data directory"
-        echo "Running data validation and processing..."
-        echo "================================="
-        
-        # Placeholder for actual data pipeline steps
-        echo "📊 Step 1: Data quality checks"
-        echo "📊 Step 2: Data schema validation"
-        echo "📊 Step 3: Data preprocessing"
-        echo "📊 Step 4: Feature engineering"
-        echo "📊 Step 5: Data versioning with DVC"
-        
-        echo "================================="
-        echo "✅ Data pipeline completed successfully!"
+        pip install dvc[s3] pandas scikit-learn numpy
 
-  data-quality-checks:
-    runs-on: ubuntu-latest
-    needs: data-validation
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python ${{ env.PYTHON_VERSION }}
-      uses: actions/setup-python@v4
+    - name: Configure Git for DVC
+      run: |
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
+
+    - name: Setup DVC
+      run: |
+        dvc config core.remote s3remote
+        dvc config core.remote.s3remote.url s3://mlops-housing-dev-datasets
+        dvc config core.remote.s3remote.region us-east-1
+
+    - name: Configure AWS credentials
+      run: |
+        mkdir -p ~/.aws
+        echo "[default]" > ~/.aws/credentials
+        echo "aws_access_key_id = ${{ secrets.AWS_ACCESS_KEY_ID }}" >> ~/.aws/credentials
+        echo "aws_secret_access_key = ${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> ~/.aws/credentials
+        echo "[default]" > ~/.aws/config
+        echo "region = us-east-1" >> ~/.aws/config
+
+    - name: Pull existing data from DVC
+      run: |
+        echo "📥 Pulling existing data from DVC remote..."
+        dvc pull --all-branches || echo "No existing data to pull"
+
+    - name: Run data processing
+      run: |
+        echo "⚙️ Running data processing pipeline..."
+        cd data/src
+        python preprocess.py
+        echo "✅ Data processing completed!"
+
+    - name: Add and version datasets with DVC
+      run: |
+        echo "📊 Versioning datasets with DVC..."
+
+        # Add raw data
+        if [ -d "data/raw" ]; then
+          cd data/raw
+          for file in *.csv; do
+            if [ -f "$file" ]; then
+              echo "Adding $file to DVC..."
+              dvc add "$file"
+            fi
+          done
+          cd ../..
+        fi
+
+        # Add processed data
+        if [ -d "data/processed" ]; then
+          cd data/processed
+          for file in *.csv; do
+            if [ -f "$file" ]; then
+              echo "Adding $file to DVC..."
+              dvc add "$file"
+            fi
+          done
+          cd ../..
+        fi
+
+        echo "✅ All datasets versioned with DVC!"
+
+    - name: Push data to DVC remote
+      run: |
+        echo "📤 Pushing data to DVC remote..."
+        dvc push --all-branches
+        echo "✅ Data pushed to DVC remote!"
+
+    - name: Commit and push .dvc files
+      run: |
+        echo "🔀 Committing and pushing .dvc files..."
+
+        # Add all .dvc files
+        git add data/**/*.dvc
+
+        # Check if there are changes to commit
+        if git diff --staged --quiet; then
+          echo "No changes in .dvc files to commit"
+        else
+          # Commit .dvc files
+          git commit -m "Update dataset versions [skip ci]"
+
+          # Push to current branch
+          git push origin ${{ github.ref }}
+          echo "✅ .dvc files committed and pushed!"
+        fi
+
+    - name: Generate data summary
+      run: |
+        echo "📋 Generating data summary..."
+        python -c "
+        import pandas as pd
+        import json
+        import os
+
+        summary = {}
+        for root, dirs, files in os.walk('data'):
+            for file in files:
+                if file.endswith('.csv'):
+                    filepath = os.path.join(root, file)
+                    try:
+                        df = pd.read_csv(filepath)
+                        summary[filepath] = {
+                            'rows': len(df),
+                            'columns': len(df.columns),
+                            'size_mb': round(os.path.getsize(filepath) / (1024*1024), 2)
+                        }
+                    except Exception as e:
+                        summary[filepath] = {'error': str(e)}
+
+        with open('artifacts/data_summary.json', 'w') as f:
+            json.dump(summary, f, indent=2)
+
+        print('Data summary generated:')
+        for filepath, info in summary.items():
+            if 'error' not in info:
+                print(f'{filepath}: {info[\"rows\"]} rows, {info[\"columns\"]} columns, {info[\"size_mb\"]} MB')
+        "
+
+    - name: Upload data summary artifact
+      uses: actions/upload-artifact@v3
       with:
-        python-version: ${{ env.PYTHON_VERSION }}
-    
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install pandas scikit-learn numpy
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    
-    - name: Run data quality checks (placeholder)
-      run: |
-        echo "🔍 Running data quality checks..."
-        echo "- Checking for missing values"
-        echo "- Validating data types"
-        echo "- Checking data ranges"
-        echo "- Verifying data integrity"
-        echo "✅ All data quality checks passed!"
+        name: data-summary
+        path: artifacts/data_summary.json
 
-  data-preprocessing:
-    runs-on: ubuntu-latest
-    needs: data-quality-checks
-    if: github.ref == 'refs/heads/main'
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python ${{ env.PYTHON_VERSION }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
-    
-    - name: Install dependencies
+    - name: Pipeline completion
       run: |
-        python -m pip install --upgrade pip
-        pip install pandas scikit-learn numpy
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    
-    - name: Run data preprocessing (placeholder)
-      run: |
-        echo "⚙️ Running data preprocessing pipeline..."
-        echo "- Loading raw data"
-        echo "- Cleaning data"
-        echo "- Feature scaling"
-        echo "- Train/test split"
-        echo "- Saving processed data"
-        echo "✅ Data preprocessing completed!"
-    
-    - name: Upload processed data artifacts (placeholder)
-      run: |
-        echo "📤 Uploading processed data artifacts..."
-        echo "- Uploading to data storage"
-        echo "- Updating data registry"
-        echo "- Creating data version"
-        echo "✅ Data artifacts uploaded successfully!"
-
-  notify-downstream:
-    runs-on: ubuntu-latest
-    needs: [data-validation, data-quality-checks, data-preprocessing]
-    if: always() && github.ref == 'refs/heads/main'
-    
-    steps:
-    - name: Notify model pipeline
-      run: |
-        echo "📢 Notifying downstream pipelines..."
-        echo "Data pipeline completed. New data available for:"
-        echo "- Model training pipeline"
-        echo "- Model validation pipeline"
-        echo "- Feature monitoring pipeline"
-        echo "✅ Notifications sent!"
+        echo "🎉 Data Pipeline Completed Successfully!"
+        echo "======================================"
+        echo "✅ Data processed and versioned"
+        echo "✅ Data pushed to DVC remote"
+        echo "✅ .dvc files committed to git"
+        echo "✅ Data summary generated"
+        echo "======================================"

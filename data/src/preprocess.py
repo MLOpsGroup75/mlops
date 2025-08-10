@@ -19,18 +19,40 @@ import json
 
 
 def load_data(raw_data_path):
-    """Load features and target data from CSV files"""
+    """Load data from the main California housing CSV file"""
     print("Loading data...")
 
-    features_path = os.path.join(raw_data_path, "california_housing_features.csv")
-    target_path = os.path.join(raw_data_path, "california_housing_target.csv")
+    # Look for the main housing dataset
+    main_data_path = os.path.join(raw_data_path, "california_housing.csv")
 
-    # Load data
-    features_df = pd.read_csv(features_path)
-    target_df = pd.read_csv(target_path)
-    target_series = target_df.iloc[:, 0]
+    if not os.path.exists(main_data_path):
+        # Fallback to feature/target files if they exist
+        features_path = os.path.join(raw_data_path, "california_housing_features.csv")
+        target_path = os.path.join(raw_data_path, "california_housing_target.csv")
 
-    print(f"Loaded {len(features_df)} samples with {len(features_df.columns)} features")
+        if os.path.exists(features_path) and os.path.exists(target_path):
+            features_df = pd.read_csv(features_path)
+            target_df = pd.read_csv(target_path)
+            target_series = target_df.iloc[:, 0]
+            print(
+                f"Loaded {len(features_df)} samples with {len(features_df.columns)} features from separate files"
+            )
+            return features_df, target_series
+        else:
+            raise FileNotFoundError(f"No data files found in {raw_data_path}")
+
+    # Load main dataset and split into features and target
+    df = pd.read_csv(main_data_path)
+
+    # Assuming the last column is the target (median_house_value)
+    target_column = df.columns[-1]
+    features_df = df.drop(columns=[target_column])
+    target_series = df[target_column]
+
+    print(
+        f"Loaded {len(features_df)} samples with {len(features_df.columns)} features from {main_data_path}"
+    )
+    print(f"Target column: {target_column}")
     return features_df, target_series
 
 
