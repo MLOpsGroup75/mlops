@@ -68,7 +68,8 @@ jobs:
         echo "aws_secret_access_key = ${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> ~/.aws/credentials
         echo "[default]" > ~/.aws/config
         echo "region = ap-south-1" >> ~/.aws/config
-
+        grep aws_access_key_id ~/.aws/credentials
+        cat ~/.aws/config
     - name: Pull existing data from DVC
       run: |
         echo "📥 Pulling existing data from DVC remote..."
