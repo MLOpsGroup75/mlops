@@ -20,7 +20,7 @@ import json
 
 def load_data(raw_data_path):
     """Load data from the main California housing CSV file"""
-    print("Loading data...")
+    print("Loading data....")
 
     # Look for the main housing dataset
     main_data_path = os.path.join(raw_data_path, "california_housing.csv")
