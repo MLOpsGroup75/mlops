@@ -248,6 +248,7 @@ async def infer_housing_price(
     request_id = getattr(request.state, "request_id", str(uuid.uuid4()))
 
     logger.info("Received inference request", request_id=request_id, service="api")
+    logger.info("NEW LOG ADDED: Received inference request", request_id=request_id, service="api")
 
     try:
         # Call Databricks endpoint
