@@ -33,7 +33,7 @@ spec:
     spec:
       containers:
       - name: api-service
-        image: sudhagar/api-service:sha-bb184dc7bdc7eb999b6aa677ac5ca70a748b525b
+        image: sudhagar/api-service:sha-008f8f21991085c5242e071413d53050cf48bd2f
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
