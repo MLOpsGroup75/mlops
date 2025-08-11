@@ -26,7 +26,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0 # Full history for DVC
+        fetch-depth: 0 # Full history for DVC - Testing
 
     - name: Set up Python ${{ env.PYTHON_VERSION }}
       uses: actions/setup-python@v4
